@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OS WarSim v59.1: Empire Builder (Final Fix)</title>
+    <title>OS WarSim v59.2: Terrain Update</title>
     <style>
         /* --- GENERAL SETTINGS --- */
         body {
@@ -176,6 +176,10 @@
         .bg-7 { background-color: #e67e22 !important; } .lbl-7 { background-color: rgba(211, 84, 0, 0.9); border-color: #fff; }
         .bg-8 { background-color: #ff7979 !important; } .lbl-8 { background-color: rgba(235, 77, 75, 0.9); border-color: #fff; }
         .bg-9 { background-color: #7f8c8d !important; } .lbl-9 { background-color: rgba(127, 140, 141, 0.9); border-color: #fff; }
+        
+        /* --- TERRAIN COLORS --- */
+        .terrain-mountain { background-color: rgba(0,0,0,0.4); } 
+        .terrain-forest { background-color: rgba(0,100,0,0.2); } 
 
         #victory-screen { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 99999; display: none; justify-content: center; align-items: center; flex-direction: column; }
         #victory-text { font-size: 50px; font-weight: 800; color: white; margin-bottom: 30px; text-shadow: 0 0 30px rgba(255,255,255,0.5); letter-spacing: 2px;}
@@ -214,7 +218,7 @@
             border-radius: 4px;       /* Köşeleri hafif yuvarla */
             box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Hafif gölge ekle */
             border: 1px solid #333;
-        }       
+        }        
     </style>
 </head>
 <body class="running">
@@ -228,7 +232,7 @@
 
     <div class="taskbar">
         <div style="display:flex; align-items:center;">
-            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v59.1 EMPIRE BUILDER</span></h1>
+            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v59.2 TERRAIN UPDATE</span></h1>
             <span style="margin: 0 15px; color: #444;">|</span>
             <div style="display:flex; gap:10px;">
                 <div id="date-display" style="font-family: 'Courier New', monospace; font-weight: bold; color: #fff; font-size: 14px; background: #222; padding: 2px 8px; border-radius: 4px; border: 1px solid #444;">1914-01-01</div>
@@ -428,6 +432,10 @@
         let rebelSafeTimer = 0;
         let teamStats = {};
         let totalCasualties = {}; 
+        const TERRAIN_PLAIN = 0;
+        const TERRAIN_FOREST = 1;
+        const TERRAIN_MOUNTAIN = 2;
+        let terrainGrid = []; 
         let smallestTeamId = null;
         let animatingCells = {}; 
         let currentFrontData = {}; 
@@ -570,9 +578,6 @@
             return FACTORY_COST + (count * 1000); 
         }
 
-        // --- YENİ ASKER GÜCÜ HESAPLAMA (DÜZELTİLDİ) ---
-        // againstRealEnemy = true ise: Düşman ülkeye saldırıyor (Tüm gücünü kullan)
-        // againstRealEnemy = false ise: Gri alana saldırıyor (Küçük güç kullan)
         function getArmyForce(teamId, againstRealEnemy = true) {
             if (teamId === GREY || teamId === OCEAN) return 0;
             let stats = teamStats[teamId];
@@ -589,16 +594,11 @@
             // PAYDA HESABI (YENİ SİSTEM)
             let divider;
             if (againstRealEnemy) {
-                // Eğer gerçek düşmana saldırıyorsak, orduyu sadece gerçek cephelere bölüştür.
-                // Eğer hiç gerçek cephe yoksa (barış zamanı), o zaman tüm sınırları kullan (savunma).
                 divider = (stats.realFrontCount > 0) ? stats.realFrontCount : stats.totalFrontCount;
             } else {
-                // Eğer gri alana saldırıyorsak, orduyu çok bölme (keşif birlikleri).
-                // Orduyu tüm ülkeye yayılmış gibi düşün.
                 divider = stats.size * 2; 
             }
             
-            // Sıfıra bölme hatası önlemi
             if (!divider || divider < 1) divider = 1;
 
             let armyPerCell = Math.floor(totalNationalArmy / divider);
@@ -696,6 +696,46 @@
                         if(warGrid[ny][nx] !== OCEAN) {
                             warGrid[ny][nx] = tid; demoGrid[ny][nx] = tid; 
                             coreLevelGrid[ny][nx] = 3; permanentCoreGrid[ny][nx] = true;
+                        }
+                    }
+                }
+            }
+
+            // ARAZİ SİSTEMİ OLUŞTURMA
+            terrainGrid = [];
+            for (let y = 0; y < ROWS; y++) {
+                let tRow = [];
+                for (let x = 0; x < COLS; x++) {
+                    tRow.push(TERRAIN_PLAIN);
+                }
+                terrainGrid.push(tRow);
+            }
+
+            // DAĞLARI VE ORMANLARI OLUŞTUR
+            for(let i=0; i<40; i++) { // 40 adet dağ kümesi
+                let cx = Math.floor(Math.random() * COLS);
+                let cy = Math.floor(Math.random() * ROWS);
+                let size = Math.floor(Math.random() * 3) + 1;
+                for(let y=cy-size; y<=cy+size; y++) {
+                    for(let x=cx-size; x<=cx+size; x++) {
+                        if(y>=0 && y<ROWS && x>=0 && x<COLS && Math.random() > 0.3) {
+                            if(warGrid[y][x] !== OCEAN) terrainGrid[y][x] = TERRAIN_MOUNTAIN;
+                        }
+                    }
+                }
+            }
+
+            for(let i=0; i<60; i++) { // 60 adet orman kümesi
+                let cx = Math.floor(Math.random() * COLS);
+                let cy = Math.floor(Math.random() * ROWS);
+                let size = Math.floor(Math.random() * 4) + 2;
+                for(let y=cy-size; y<=cy+size; y++) {
+                    for(let x=cx-size; x<=cx+size; x++) {
+                        if(y>=0 && y<ROWS && x>=0 && x<COLS && Math.random() > 0.4) {
+                            // Dağların üzerine orman gelmesin
+                            if(warGrid[y][x] !== OCEAN && terrainGrid[y][x] === TERRAIN_PLAIN) {
+                                terrainGrid[y][x] = TERRAIN_FOREST;
+                            }
                         }
                     }
                 }
@@ -867,6 +907,17 @@
                     } else {
                         ctxWar.fillStyle = COLOR_HEX[warGrid[y][x]]; ctxWar.fillRect(cx, cy, cellW+0.5, cellH+0.5); 
                     }
+
+                    // --- ARAZİ ÇİZİMİ DÜZELTİLDİ ---
+                    // Animasyon bloğunun dışına alındı, böylece her zaman çizilir.
+                    if (terrainGrid[y][x] === TERRAIN_MOUNTAIN) {
+                        ctxWar.fillStyle = "rgba(0, 0, 0, 0.35)"; // Dağ gölgesi
+                        ctxWar.fillRect(cx, cy, cellW, cellH);
+                    } else if (terrainGrid[y][x] === TERRAIN_FOREST) {
+                        ctxWar.fillStyle = "rgba(0, 50, 0, 0.25)"; // Orman yeşilliği
+                        ctxWar.fillRect(cx, cy, cellW, cellH);
+                    }
+
                     if(strategicPoints.some(p => p.x === x && p.y === y)) { ctxWar.font = `${cellH/2}px Arial`; ctxWar.textAlign='center'; ctxWar.textBaseline='middle'; ctxWar.fillStyle = 'white'; ctxWar.fillText("★", cx+cellW/2, cy+cellH/2); }
                     for(let t in CAPITALS) { if(CAPITALS[t].x === x && CAPITALS[t].y === y && warGrid[y][x] == t) { ctxWar.font = `${cellH/1.5}px Arial`; ctxWar.textAlign='center'; ctxWar.textBaseline='middle'; ctxWar.fillStyle = 'gold'; ctxWar.fillText("👑", cx+cellW/2, cy+cellH/2); } }
                 }
@@ -1405,7 +1456,7 @@
                 let restorationCount = 0;
 
                 for(let y=0; y<ROWS; y++) for(let x=0; x<COLS; x++) {
-                    let nativeOwner = demoGrid[y][x];   
+                    let nativeOwner = demoGrid[y][x];    
                     let occupier = warGrid[y][x];        
 
                     if (nativeOwner !== GREY && nativeOwner !== OCEAN && nativeOwner !== occupier && !activePowers.includes(nativeOwner)) {
@@ -1550,6 +1601,15 @@
                     maxMult = GAME_CONFIG.trench.max;
                 }
 
+                // --- ARAZİ BONUSLARI (DÜZELTİLDİ: Sadece combat için) ---
+                let terrainType = terrainGrid[target.y][target.x];
+                if (terrainType === TERRAIN_MOUNTAIN) {
+                    defArmy *= 3.0; // Dağlar inanılmaz savunma bonusu verir (3x)
+                    if (Math.random() < 0.005) addLog(`⛰️ Mountain defense at [${target.x},${target.y}] holds!`, 'normal'); // Log sıklığını düşürdüm
+                } else if (terrainType === TERRAIN_FOREST) {
+                    defArmy *= 1.5; // Ormanlar orta seviye bonus verir (1.5x)
+                }
+
                 let atkLuck = minMult + Math.random() * (maxMult - minMult);
                 let defLuck = minMult + Math.random() * (maxMult - minMult);
 
@@ -1557,7 +1617,7 @@
 
                 let atkRoll = atkArmy * atkLuck;
                 let defRoll = defArmy * defLuck;
-               
+                
                 if(atkRoll > defRoll) {
                     if (year < GAME_CONFIG.mobile.start && atkRoll < defRoll * 1.1 && targetC !== GREY) {
                          applyNationalLoss(cell.c, BASE_LOSS * 1.5); applyNationalLoss(targetC, BASE_LOSS * 0.5); return; 
