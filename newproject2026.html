@@ -256,60 +256,67 @@
     </div>
 
 <div id="setup-screen">
-        <div class="setup-box" style="width: 700px;">
-            
-            <img src="logo.png" id="menu-logo" alt="Oyun Logosu">
-            <h1 style="color:#e67e22; text-align:center; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">OS WARSIM: CONFIG</h1>
-            
-            <div style="display:flex; gap:10px; margin-bottom:15px;">
-                <div class="era-box">
-                    <h3 style="color:#f1c40f">TRENCH (1914)</h3>
-                    <div class="input-group"><label>Min (%):</label><input type="number" id="tr-min" value="90"></div>
-                    <div class="input-group"><label>Max (%):</label><input type="number" id="tr-max" value="110"></div>
-                </div>
-                <div class="era-box">
-                    <h3 style="color:#e67e22">MOBILE</h3>
-                    <div class="input-group"><label>Yıl:</label><input type="number" id="mob-year" value="1936"></div>
-                    <div class="input-group"><label>Min (%):</label><input type="number" id="mob-min" value="80"></div>
-                    <div class="input-group"><label>Max (%):</label><input type="number" id="mob-max" value="150"></div>
-                </div>
-                <div class="era-box">
-                    <h3 style="color:#3498db">MODERN</h3>
-                    <div class="input-group"><label>Yıl:</label><input type="number" id="mod-year" value="1950"></div>
-                    <div class="input-group"><label>Min (%):</label><input type="number" id="mod-min" value="50"></div>
-                    <div class="input-group"><label>Max (%):</label><input type="number" id="mod-max" value="200"></div>
-                </div>
+    <div class="setup-box" style="width: 700px;">
+        
+        <img src="logo.png" id="menu-logo" alt="Oyun Logosu">
+        <h1 style="color:#e67e22; text-align:center; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">OS WARSIM: CONFIG</h1>
+        
+        <div style="display:flex; gap:10px; margin-bottom:15px; justify-content:center; background:#222; padding:10px; border-radius:4px; border:1px solid #444;">
+            <div class="input-group" style="width:150px;">
+                <label style="color:#3498db; font-weight:bold;">Deniz Sayısı:</label>
+                <input type="number" id="sea-count" value="15" min="0" max="50">
             </div>
-
-            <h3 style="color:#ccc; border-bottom:1px solid #333; margin-bottom:10px; font-size:12px;">ADVANCED COMBAT MODIFIERS</h3>
-            <div style="display:flex; gap:10px; margin-bottom:20px;">
-                <div class="era-box" style="background:#222;">
-                    <div class="input-group">
-                        <label style="color:#e74c3c">Başkent Bonusu (x):</label>
-                        <input type="number" id="mod-capital" value="5.0" step="0.1">
-                    </div>
-                    <div class="note">Başkentte savunma gücü çarpanı.</div>
-                </div>
-                <div class="era-box" style="background:#222;">
-                    <div class="input-group">
-                        <label style="color:#f1c40f">Siper Defansı (x):</label>
-                        <input type="number" id="mod-trench" value="1.5" step="0.1">
-                    </div>
-                    <div class="note">1936 öncesi savunana verilen avantaj.</div>
-                </div>
-                <div class="era-box" style="background:#222;">
-                    <div class="input-group">
-                        <label style="color:#3498db">Küçük Ülke (x):</label>
-                        <input type="number" id="mod-small" value="3.0" step="0.1">
-                    </div>
-                    <div class="note">10 kareden küçük ülkelere destek.</div>
-                </div>
+            <div class="input-group" style="width:150px;">
+                <label style="color:#3498db; font-weight:bold;">Deniz Boyutu:</label>
+                <input type="number" id="sea-size" value="5" min="1" max="15">
             </div>
-
-            <button id="btn-start-game" style="width:100%; padding:12px; font-size:16px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">SİMÜLASYONU BAŞLAT</button>
         </div>
-    </div>
 
+        <div style="display:flex; gap:10px; margin-bottom:15px;">
+            <div class="era-box">
+                <h3 style="color:#f1c40f">TRENCH (1914)</h3>
+                <div class="input-group"><label>Min (%):</label><input type="number" id="tr-min" value="90"></div>
+                <div class="input-group"><label>Max (%):</label><input type="number" id="tr-max" value="110"></div>
+            </div>
+            <div class="era-box">
+                <h3 style="color:#e67e22">MOBILE</h3>
+                <div class="input-group"><label>Yıl:</label><input type="number" id="mob-year" value="1936"></div>
+                <div class="input-group"><label>Min (%):</label><input type="number" id="mob-min" value="80"></div>
+                <div class="input-group"><label>Max (%):</label><input type="number" id="mob-max" value="150"></div>
+            </div>
+            <div class="era-box">
+                <h3 style="color:#3498db">MODERN</h3>
+                <div class="input-group"><label>Yıl:</label><input type="number" id="mod-year" value="1950"></div>
+                <div class="input-group"><label>Min (%):</label><input type="number" id="mod-min" value="50"></div>
+                <div class="input-group"><label>Max (%):</label><input type="number" id="mod-max" value="200"></div>
+            </div>
+        </div>
+
+        <h3 style="color:#ccc; border-bottom:1px solid #333; margin-bottom:10px; font-size:12px;">ADVANCED COMBAT MODIFIERS</h3>
+        <div style="display:flex; gap:10px; margin-bottom:20px;">
+            <div class="era-box" style="background:#222;">
+                <div class="input-group">
+                    <label style="color:#e74c3c">Başkent Bonusu (x):</label>
+                    <input type="number" id="mod-capital" value="5.0" step="0.1">
+                </div>
+            </div>
+            <div class="era-box" style="background:#222;">
+                <div class="input-group">
+                    <label style="color:#f1c40f">Siper Defansı (x):</label>
+                    <input type="number" id="mod-trench" value="1.5" step="0.1">
+                </div>
+            </div>
+            <div class="era-box" style="background:#222;">
+                <div class="input-group">
+                    <label style="color:#3498db">Küçük Ülke (x):</label>
+                    <input type="number" id="mod-small" value="3.0" step="0.1">
+                </div>
+            </div>
+        </div>
+
+        <button id="btn-start-game" style="width:100%; padding:12px; font-size:16px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">SİMÜLASYONU BAŞLAT</button>
+    </div>
+</div>
     <div id="win-log" class="draggable-window" style="bottom: 20px; right: 20px; z-index: 9; width: 350px; height: 200px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">War Log</div></div>
         <div class="window-content">
@@ -355,10 +362,10 @@
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Conscription Rates</div></div>
         <div class="window-content"><div id="draft-container" class="chart-container"></div></div>
     </div>
-
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
+        // --- PENCERE SÜRÜKLEME ---
         let zIndexCounter = 100;
         document.querySelectorAll('.draggable-window').forEach(win => {
             const header = win.querySelector('.window-header');
@@ -373,12 +380,13 @@
             });
         });
 
-        // --- GLOBAL CONFIG VE DEĞİŞKENLER ---
+        // --- GLOBAL CONFIG ---
         let GAME_CONFIG = {
             trench: { min: 0.9, max: 1.1 },
             mobile: { start: 1936, min: 0.8, max: 1.5 },
             modern: { start: 1950, min: 0.5, max: 2.0 },
-            modifiers: { capital: 5.0, trench_def: 1.5, small: 3.0 }
+            modifiers: { capital: 5.0, trench_def: 1.5, small: 3.0 },
+            sea: { count: 15, size: 5 } 
         };
 
         let ROWS = 64; let COLS = 64; 
@@ -393,12 +401,20 @@
         const REBEL_PEACE_TIME = 60;
 
         const GREY = 0; 
+        const OCEAN = 10; 
+        
         const RED = 1; const BLUE = 2; const GREEN = 3; const YELLOW = 4;
         const CYAN = 5; const PURPLE = 6; const ORANGE = 7; const PINK = 8;
         const REBEL = 9;
+        
         const TEAMS = [RED, BLUE, GREEN, YELLOW, CYAN, PURPLE, ORANGE, PINK]; 
         const BASE_TEAM_NAMES = { 1: "RED", 2: "BLUE", 3: "GREEN", 4: "YELLOW", 5: "CYAN", 6: "PURPLE", 7: "ORANGE", 8: "PINK", 9: "REBELS", 0: "NEUTRAL" };
-        const COLOR_HEX = { 1: '#e74c3c', 2: '#3498db', 3: '#2ecc71', 4: '#f1c40f', 5: '#1abc9c', 6: '#9b59b6', 7: '#e67e22', 8: '#ff7979', 9: '#7f8c8d', 0: '#222222' };
+        
+        const COLOR_HEX = { 
+            1: '#e74c3c', 2: '#3498db', 3: '#2ecc71', 4: '#f1c40f', 
+            5: '#1abc9c', 6: '#9b59b6', 7: '#e67e22', 8: '#ff7979', 
+            9: '#7f8c8d', 0: '#333333', 10: '#0b1d35' 
+        };
         const COLOR_CLASS_BG = { 1: 'bg-1', 2: 'bg-2', 3: 'bg-3', 4: 'bg-4', 5: 'bg-5', 6: 'bg-6', 7: 'bg-7', 8: 'bg-8', 9: 'bg-9' };
         const COLOR_CLASS_LBL = { 1: 'lbl-1', 2: 'lbl-2', 3: 'lbl-3', 4: 'lbl-4', 5: 'lbl-5', 6: 'lbl-6', 7: 'lbl-7', 8: 'lbl-8', 9: 'lbl-9' };
 
@@ -437,35 +453,33 @@
         document.getElementById('btn-faster').addEventListener('click', () => changeSpeed(-20)); 
         document.getElementById('btn-slower').addEventListener('click', () => changeSpeed(20));
 
-        // --- MENÜDEN BAŞLATMA VE AYAR OKUMA ---
+        // --- BAŞLATMA ---
         document.getElementById('btn-start-game').addEventListener('click', function() {
+            // 1. Ayarları Çek
             GAME_CONFIG.trench.min = parseFloat(document.getElementById('tr-min').value) / 100;
             GAME_CONFIG.trench.max = parseFloat(document.getElementById('tr-max').value) / 100;
-
             GAME_CONFIG.mobile.start = parseInt(document.getElementById('mob-year').value);
             GAME_CONFIG.mobile.min = parseFloat(document.getElementById('mob-min').value) / 100;
             GAME_CONFIG.mobile.max = parseFloat(document.getElementById('mob-max').value) / 100;
-
             GAME_CONFIG.modern.start = parseInt(document.getElementById('mod-year').value);
             GAME_CONFIG.modern.min = parseFloat(document.getElementById('mod-min').value) / 100;
             GAME_CONFIG.modern.max = parseFloat(document.getElementById('mod-max').value) / 100;
-
             GAME_CONFIG.modifiers.capital = parseFloat(document.getElementById('mod-capital').value);
             GAME_CONFIG.modifiers.trench_def = parseFloat(document.getElementById('mod-trench').value);
             GAME_CONFIG.modifiers.small = parseFloat(document.getElementById('mod-small').value);
 
-            ROWS = 64; COLS = 64; 
-            CAPITALS = { 
-                1: {x: 6, y: 6}, 2: {x: 6, y: 56}, 3: {x: 56, y: 6}, 4: {x: 56, y: 56}, 
-                5: {x: 32, y: 6}, 6: {x: 32, y: 56}, 7: {x: 6, y: 32}, 8: {x: 56, y: 32} 
-            };
-            window.BACKUP_CAPITALS = JSON.parse(JSON.stringify(CAPITALS));
+            // DENİZ AYARLARI (Artık HTML'de sabit olduğu için direkt çekiyoruz)
+            GAME_CONFIG.sea.count = parseInt(document.getElementById('sea-count').value);
+            GAME_CONFIG.sea.size = parseInt(document.getElementById('sea-size').value);
 
-            document.querySelector('#win-war .window-title').innerText = `War Room (64x64) - Configured`;
+            ROWS = 64; COLS = 64; 
+
+            document.querySelector('#win-war .window-title').innerText = `War Room (STANDARD)`;
             document.getElementById('setup-screen').style.display = 'none';
             createBoards(); 
         });
 
+        // --- GOD MODE ---
         warCanvas.addEventListener('mousedown', function(e) {
             const rect = warCanvas.getBoundingClientRect();
             const scaleX = warCanvas.width / rect.width;
@@ -474,6 +488,7 @@
             const y = Math.floor(((e.clientY - rect.top) * scaleY) / (warCanvas.height / ROWS));
 
             if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
+                if (warGrid[y][x] === OCEAN) return; // Denize vurma
                 let targetId = warGrid[y][x];
                 if (targetId !== GREY) {
                     showFloatingText(e.clientX, e.clientY, "SMITE!", "panic-text");
@@ -550,7 +565,7 @@
 
         function getAllianceKey(id1, id2) { return id1 < id2 ? `${id1}-${id2}` : `${id2}-${id1}`; }
         function areAllies(id1, id2) {
-            if(id1 === REBEL || id2 === REBEL || id1 === GREY || id2 === GREY) return false;
+            if(id1 === REBEL || id2 === REBEL || id1 === GREY || id2 === GREY || id1 === OCEAN || id2 === OCEAN) return false;
             let key = getAllianceKey(id1, id2); return alliances[key] && alliances[key] > 0;
         }
 
@@ -560,7 +575,7 @@
         }
 
         function getArmyForce(teamId) {
-            if (teamId === GREY) return 0;
+            if (teamId === GREY || teamId === OCEAN) return 0;
             let stats = teamStats[teamId];
             if (!stats || stats.size === 0) return 0;
             let baseRate = 0.02;
@@ -607,14 +622,9 @@
             simDate = new Date("1914-01-01"); modernEraTriggered = false;
             document.getElementById('date-display').innerText = "1914-01-01";
             
-            while(strategicPoints.length < 10) {
-                let rx = Math.floor(Math.random() * COLS); let ry = Math.floor(Math.random() * ROWS);
-                let safe = true;
-                Object.values(CAPITALS).forEach(cap => { if (Math.abs(cap.x - rx) + Math.abs(cap.y - ry) < 4) safe = false; });
-                if (strategicPoints.some(p => p.x === rx && p.y === ry)) safe = false;
-                if (safe) strategicPoints.push({x: rx, y: ry});
-            }
-
+            // --- HARİTA OLUŞTURMA (SADECE STANDART + RASTGELE DENİZ) ---
+            
+            // 1. Önce her yeri KARA (GREY) yap
             for (let y = 0; y < ROWS; y++) {
                 let warRow=[], demoRow=[], timeRow=[], popRow=[], factRow=[], coreRow=[], permRow=[]; 
                 for (let x = 0; x < COLS; x++) {
@@ -623,16 +633,83 @@
                 warGrid.push(warRow); demoGrid.push(demoRow); occupationTime.push(timeRow); populationGrid.push(popRow); factoryGrid.push(factRow); coreLevelGrid.push(coreRow); permanentCoreGrid.push(permRow); 
             }
 
+            // 2. Başkentleri Belirle (Standard Köşeler)
+            CAPITALS = { 
+                1: {x: 6, y: 6}, 2: {x: 6, y: 56}, 3: {x: 56, y: 6}, 4: {x: 56, y: 56}, 
+                5: {x: 32, y: 6}, 6: {x: 32, y: 56}, 7: {x: 6, y: 32}, 8: {x: 56, y: 32} 
+            };
+            window.BACKUP_CAPITALS = JSON.parse(JSON.stringify(CAPITALS));
+
+            // 3. DENİZLERİ RASTGELE YERLEŞTİR
+            // Kurallar: Başkentlere yakın olamaz.
+            let seasPlaced = 0;
+            let attempts = 0;
+            let seaCount = GAME_CONFIG.sea.count;
+            let seaBaseRadius = GAME_CONFIG.sea.size;
+
+            while(seasPlaced < seaCount && attempts < 1000) {
+                attempts++;
+                let cx = Math.floor(Math.random() * COLS);
+                let cy = Math.floor(Math.random() * ROWS);
+                let radius = seaBaseRadius + Math.floor(Math.random() * 3); // Biraz varyasyon
+
+                // Güvenlik Kontrolü: Herhangi bir başkente çok yakın mı?
+                let safe = true;
+                for(let id in CAPITALS) {
+                    let cap = CAPITALS[id];
+                    let dist = Math.hypot(cx - cap.x, cy - cap.y);
+                    if(dist < radius + 6) { // Deniz yarıçapı + 6 birim güvenlik
+                        safe = false; 
+                        break; 
+                    }
+                }
+
+                if(safe) {
+                    // Denizi Çiz
+                    for(let y=cy-radius; y<=cy+radius; y++) {
+                        for(let x=cx-radius; x<=cx+radius; x++) {
+                            if(y>=0 && y<ROWS && x>=0 && x<COLS) {
+                                // Dairesel çizim
+                                if(Math.hypot(x-cx, y-cy) <= radius) {
+                                    warGrid[y][x] = OCEAN;
+                                    demoGrid[y][x] = OCEAN;
+                                }
+                            }
+                        }
+                    }
+                    seasPlaced++;
+                }
+            }
+
+            // 4. Başkentleri ve Çevrelerini Ata (START GAMEPLAY)
             for(let id in CAPITALS) {
                 let cap = CAPITALS[id]; let tid = parseInt(id);
+                // Başkent + 1 kare etrafı o ülkenin olsun
                 for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++) {
                     let ny = cap.y + dy; let nx = cap.x + dx;
                     if(ny>=0 && ny<ROWS && nx>=0 && nx<COLS) {
-                        warGrid[ny][nx] = tid; demoGrid[ny][nx] = tid; coreLevelGrid[ny][nx] = 3; permanentCoreGrid[ny][nx] = true;
+                        // Sadece karaysa alabilir (Denizi ezmesin diye kontrol, ama zaten uzak spawnladık)
+                        if(warGrid[ny][nx] !== OCEAN) {
+                            warGrid[ny][nx] = tid; demoGrid[ny][nx] = tid; 
+                            coreLevelGrid[ny][nx] = 3; permanentCoreGrid[ny][nx] = true;
+                        }
                     }
                 }
             }
 
+            // Stratejik Noktalar (Rastgele)
+            while(strategicPoints.length < 10) {
+                let rx = Math.floor(Math.random() * COLS); let ry = Math.floor(Math.random() * ROWS);
+                let safe = true;
+                Object.values(CAPITALS).forEach(cap => { if (Math.abs(cap.x - rx) + Math.abs(cap.y - ry) < 4) safe = false; });
+                if (strategicPoints.some(p => p.x === rx && p.y === ry)) safe = false;
+                
+                // ÖNEMLİ: Sadece GREY (Kara) olan yere yıldız koy, denize koyma
+                if (warGrid[ry][rx] === GREY) strategicPoints.push({x: rx, y: ry});
+                else safe = false; 
+            }
+
+            // Arayüz
             TEAMS.forEach(t => { spawnPlane(t, 'FIGHTER'); spawnPlane(t, 'BOMBER'); });
             [...TEAMS, REBEL].forEach(teamId => { 
                 let short = BASE_TEAM_NAMES[teamId].substring(0,3);
@@ -728,7 +805,7 @@
                                         setTimeout(() => {
                                             if(warGrid[c.y][c.x] === defender) {
                                                 if (factoryGrid[c.y][c.x] === 1) {
-                                                    if (defender !== GREY) teamStats[defender].factories = Math.max(0, teamStats[defender].factories - 1);
+                                                    if (defender !== GREY && defender !== OCEAN) teamStats[defender].factories = Math.max(0, teamStats[defender].factories - 1);
                                                     teamStats[attacker].factories++;
                                                 }
                                                 warGrid[c.y][c.x] = attacker; occupationTime[c.y][c.x] = 0;
@@ -817,7 +894,7 @@
                     p.gridX = tx; p.gridY = ty;
                     if (p.state === 'ATTACK' && p.type === 'BOMBER') {
                         let gx = Math.floor(p.gridX); let gy = Math.floor(p.gridY);
-                        if(gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && warGrid[gy][gx] !== GREY) {
+                        if(gx >= 0 && gx < COLS && gy >= 0 && gy < ROWS && warGrid[gy][gx] !== GREY && warGrid[gy][gx] !== OCEAN) {
                             let targetTeam = warGrid[gy][gx];
                             if (!areAllies(p.team, targetTeam)) {
                                 startCaptureAnimation(gx, gy, targetTeam, GREY, gx, gy); 
@@ -905,10 +982,10 @@
         function calculateStats() {
             [...TEAMS, REBEL].forEach(id => { teamStats[id].gdp = 0; teamStats[id].totalPop = 0; teamStats[id].size = 0; teamStats[id].frontCount = 0; });
             let strBonus = {}; TEAMS.forEach(t=>strBonus[t]=0);
-            strategicPoints.forEach(pt => { let owner = warGrid[pt.y][pt.x]; if (owner !== GREY) strBonus[owner] = (strBonus[owner]||0) + 0.05; });
+            strategicPoints.forEach(pt => { let owner = warGrid[pt.y][pt.x]; if (owner !== GREY && owner !== OCEAN) strBonus[owner] = (strBonus[owner]||0) + 0.05; });
             
             for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
-                const owner = warGrid[y][x]; if (owner === GREY) continue;
+                const owner = warGrid[y][x]; if (owner === GREY || owner === OCEAN) continue;
                 
                 let efficiency = 0.05; 
                 if (demoGrid[y][x] === owner) {
@@ -977,9 +1054,11 @@
                     let nx = targetX + off.dx; let ny = targetY + off.dy;
                     if(ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
                         let victim = warGrid[ny][nx];
-                        if(factoryGrid[ny][nx] === 1) { factoryGrid[ny][nx] = 0; if(victim !== GREY) teamStats[victim].factories = Math.max(0, teamStats[victim].factories - 1); }
-                        warGrid[ny][nx] = GREY; populationGrid[ny][nx] = 0; occupationTime[ny][nx] = 0;
-                        startCaptureAnimation(nx, ny, targetId, GREY, nx, ny);
+                        if(factoryGrid[ny][nx] === 1) { factoryGrid[ny][nx] = 0; if(victim !== GREY && victim !== OCEAN) teamStats[victim].factories = Math.max(0, teamStats[victim].factories - 1); }
+                        if (warGrid[ny][nx] !== OCEAN) {
+                            warGrid[ny][nx] = GREY; populationGrid[ny][nx] = 0; occupationTime[ny][nx] = 0;
+                            startCaptureAnimation(nx, ny, targetId, GREY, nx, ny);
+                        }
                     }
                 });
                 if(cap) delete CAPITALS[targetId]; teamStats[attackerId].nukeProgress = 0; 
@@ -1089,9 +1168,8 @@
         }
         
         function updateView() {
-            if(!ctxDemo || !ctxPop || !ctxFact) return; // Güvenlik kontrolü
+            if(!ctxDemo || !ctxPop || !ctxFact) return; 
 
-            // Canvas boyutlarını sürekli sıfırlama, sadece temizle
             const dCW = demoCanvas.width / COLS; const dCH = demoCanvas.height / ROWS;
             ctxDemo.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
             
@@ -1106,8 +1184,11 @@
                 let occupier = warGrid[y][x]; 
                 let native = demoGrid[y][x];
                 
-                if (occupier === GREY) ctxDemo.fillStyle = '#111';
-                else if (occupier !== native) {
+                if (occupier === OCEAN) {
+                    ctxDemo.fillStyle = COLOR_HEX[OCEAN];
+                } else if (occupier === GREY) {
+                    ctxDemo.fillStyle = '#111'; // Kara ama sahipsiz (Koyu Gri)
+                } else if (occupier !== native) {
                     ctxDemo.fillStyle = COLOR_HEX[native];
                     ctxDemo.fillRect(x*dCW, y*dCH, dCW, dCH);
                     ctxDemo.fillStyle = COLOR_HEX[occupier];
@@ -1125,26 +1206,27 @@
                 }
 
                 // --- POPULATION MAP ---
-                let pop = populationGrid[y][x];
-                let ratio = Math.min(pop / INITIAL_POPULATION, 1);
-                let r = Math.floor(ratio * 255);
-                
-                ctxPop.fillStyle = `rgb(${r}, 0, 0)`;
-                ctxPop.fillRect(x*pCW, y*pCH, pCW, pCH);
-
-                if (pop > 5000) {
-                    ctxPop.fillStyle = 'rgba(255,255,255,0.9)'; 
-                    ctxPop.font = 'bold 8px Arial'; 
-                    ctxPop.textAlign = 'center';
-                    ctxPop.textBaseline = 'middle';
-                    let label = Math.floor(pop / 1000); 
-                    ctxPop.fillText(label, x*pCW + pCW/2, y*pCH + pCH/2);
+                if (occupier !== OCEAN) {
+                    let pop = populationGrid[y][x];
+                    let ratio = Math.min(pop / INITIAL_POPULATION, 1);
+                    let r = Math.floor(ratio * 255);
+                    ctxPop.fillStyle = `rgb(${r}, 0, 0)`;
+                    ctxPop.fillRect(x*pCW, y*pCH, pCW, pCH);
+                    if (pop > 5000) {
+                        ctxPop.fillStyle = 'rgba(255,255,255,0.9)'; 
+                        ctxPop.font = 'bold 8px Arial'; 
+                        ctxPop.textAlign = 'center'; ctxPop.textBaseline = 'middle';
+                        ctxPop.fillText(Math.floor(pop / 1000), x*pCW + pCW/2, y*pCH + pCH/2);
+                    }
+                } else {
+                    ctxPop.fillStyle = COLOR_HEX[OCEAN];
+                    ctxPop.fillRect(x*pCW, y*pCH, pCW, pCH);
                 }
 
                 // --- FACTORY MAP ---
                 if (factoryGrid[y][x] === 1) {
                     let owner = warGrid[y][x];
-                    ctxFact.fillStyle = (owner !== GREY) ? COLOR_HEX[owner] : '#555';
+                    ctxFact.fillStyle = (owner !== GREY && owner !== OCEAN) ? COLOR_HEX[owner] : '#555';
                     ctxFact.fillRect(x*fCW, y*fCH, fCW, fCH);
                     ctxFact.strokeStyle = 'white'; ctxFact.lineWidth = 0.5;
                     ctxFact.strokeRect(x*fCW, y*fCH, fCW, fCH);
@@ -1156,11 +1238,12 @@
         function updateLabels() {
             let fronts = {}; 
             for(let y=0; y<ROWS; y++) for(let x=0; x<COLS; x++) {
-                let c1 = warGrid[y][x]; if(c1===GREY) continue;
+                let c1 = warGrid[y][x]; if(c1===GREY || c1===OCEAN) continue;
                 [{y:y,x:x+1}, {y:y+1,x:x}].forEach(n => {
                     if(n.y<ROWS && n.x<COLS) {
                         let c2 = warGrid[n.y][n.x];
-                        if(c2!==GREY && c2!==c1 && !areAllies(c1, c2)) {
+                        // GREY ile savaş olabilir ama OCEAN ile olamaz
+                        if(c2!==c1 && c2!==OCEAN && !areAllies(c1, c2)) {
                             let key = c1<c2 ? `${c1}-${c2}` : `${c2}-${c1}`;
                             if(!fronts[key]) fronts[key] = {[c1]:{x:0,y:0,n:0,troops:0}, [c2]:{x:0,y:0,n:0,troops:0}};
                             fronts[key][c1].x+=x; fronts[key][c1].y+=y; fronts[key][c1].n++; fronts[key][c1].troops+=getArmyForce(c1);
@@ -1286,7 +1369,8 @@
                 while(attempts < 50) {
                     let tx = Math.floor(Math.random() * COLS); let ty = Math.floor(Math.random() * ROWS);
                     let targetTeam = warGrid[ty][tx];
-                    if (targetTeam !== teamId && targetTeam !== GREY && !areAllies(teamId, targetTeam)) { newPlane.targetGX = tx; newPlane.targetGY = ty; newPlane.state = 'ATTACK'; found = true; break; }
+                    // Denize bombalama yapma, sadece düşman veya nötr kara
+                    if (targetTeam !== teamId && targetTeam !== OCEAN && !areAllies(teamId, targetTeam)) { newPlane.targetGX = tx; newPlane.targetGY = ty; newPlane.state = 'ATTACK'; found = true; break; }
                     attempts++;
                 }
                 if(!found) return;
@@ -1311,7 +1395,7 @@
                     let nativeOwner = demoGrid[y][x];   
                     let occupier = warGrid[y][x];        
 
-                    if (nativeOwner !== GREY && nativeOwner !== occupier && !activePowers.includes(nativeOwner)) {
+                    if (nativeOwner !== GREY && nativeOwner !== OCEAN && nativeOwner !== occupier && !activePowers.includes(nativeOwner)) {
                         warGrid[y][x] = nativeOwner; 
                         occupationTime[y][x] = 0;
                         startCaptureAnimation(x, y, occupier, nativeOwner, x, y);
@@ -1356,7 +1440,7 @@
             }
         }
 
-        // --- ANA OYUN DÖNGÜSÜ (Config Entegreli) ---
+        // --- ANA OYUN DÖNGÜSÜ ---
         function gameLoop() {
             gameTick++;
             simDate.setDate(simDate.getDate() + 2);
@@ -1366,7 +1450,6 @@
             let day = simDate.getDate().toString().padStart(2, '0');
             document.getElementById('date-display').innerText = `${year}-${month}-${day}`;
 
-            // ÇAĞLARI CONFIG'DEN KONTROL ETME
             let eraName = "TRENCH WARFARE"; let eraColor = "#f1c40f"; let cooldownLimit = 60; let isModernWar = false;
 
             if (year >= GAME_CONFIG.modern.start) {
@@ -1394,12 +1477,11 @@
 
             let newWarGrid = JSON.parse(JSON.stringify(warGrid));
             let activeCells = []; 
-            for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (warGrid[y][x] !== GREY) activeCells.push({y: y, x: x, c: warGrid[y][x]});
+            for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) if (warGrid[y][x] !== GREY && warGrid[y][x] !== OCEAN) activeCells.push({y: y, x: x, c: warGrid[y][x]});
             activeCells.sort(() => Math.random() - 0.5);
             
             calculateStats(); 
 
-            // --- SAVAŞ DÖNGÜSÜ (GÜNCELLENDİ: STATLAR DAHA ETKİLİ) ---
             activeCells.forEach(cell => {
                 if(rebelSafeTimer > 0 && cell.c === REBEL) return;
 
@@ -1414,6 +1496,9 @@
                 let target = neighbors[Math.floor(Math.random()*neighbors.length)];
                 let targetC = warGrid[target.y][target.x];
                 
+                // --- DENİZE SALDIRMA ---
+                if (targetC === OCEAN) return;
+                
                 if(rebelSafeTimer > 0 && targetC === REBEL) return;
                 if(targetC === cell.c || areAllies(cell.c, targetC)) return;
 
@@ -1421,7 +1506,6 @@
                 let neutralResistance = 20; 
                 let defArmy = (targetC !== GREY) ? getArmyForce(targetC) : neutralResistance;
 
-                // --- MODIFIER AYARLARI KULLANILIYOR ---
                 if(targetC !== GREY && CAPITALS[targetC] && CAPITALS[targetC].x === target.x && CAPITALS[targetC].y === target.y) { 
                     defArmy *= GAME_CONFIG.modifiers.capital; 
                 }
@@ -1429,16 +1513,14 @@
                 if (year < GAME_CONFIG.mobile.start) {
                     defArmy *= GAME_CONFIG.modifiers.trench_def;
                 } else {
-                    defArmy *= 1.1; // Mobile sonrası standart savunma bonusu
+                    defArmy *= 1.1; 
                 }
 
                 if (targetC !== GREY && teamStats[targetC] && teamStats[targetC].size <= 10) {
                     defArmy *= GAME_CONFIG.modifiers.small;
                 }
 
-                // --- GÜÇ HESAPLAMA (CONFIG KULLANARAK) ---
                 let minMult, maxMult;
-
                 if (year >= GAME_CONFIG.modern.start) {
                     minMult = GAME_CONFIG.modern.min;
                     maxMult = GAME_CONFIG.modern.max;
@@ -1453,13 +1535,11 @@
                 let atkLuck = minMult + Math.random() * (maxMult - minMult);
                 let defLuck = minMult + Math.random() * (maxMult - minMult);
 
-                // Kritik Vuruş
                 if (maxMult > 1.5 && Math.random() < 0.1) atkLuck *= 1.5; 
 
                 let atkRoll = atkArmy * atkLuck;
                 let defRoll = defArmy * defLuck;
-                // -------------------------------------------
-
+               
                 if(atkRoll > defRoll) {
                     if (year < GAME_CONFIG.mobile.start && atkRoll < defRoll * 1.1 && targetC !== GREY) {
                          applyNationalLoss(cell.c, BASE_LOSS * 1.5); applyNationalLoss(targetC, BASE_LOSS * 0.5); return; 
@@ -1494,7 +1574,7 @@
             warGrid = newWarGrid;
             for(let y=0; y<ROWS; y++) for(let x=0; x<COLS; x++) {
                 let owner = warGrid[y][x];
-                if(owner !== GREY) {
+                if(owner !== GREY && owner !== OCEAN) {
                     occupationTime[y][x]++; 
                     if(permanentCoreGrid[y] && permanentCoreGrid[y][x]) continue; 
                 }
