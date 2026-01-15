@@ -455,7 +455,6 @@
 
         // --- BAŞLATMA ---
         document.getElementById('btn-start-game').addEventListener('click', function() {
-            // 1. Ayarları Çek
             GAME_CONFIG.trench.min = parseFloat(document.getElementById('tr-min').value) / 100;
             GAME_CONFIG.trench.max = parseFloat(document.getElementById('tr-max').value) / 100;
             GAME_CONFIG.mobile.start = parseInt(document.getElementById('mob-year').value);
@@ -467,13 +466,10 @@
             GAME_CONFIG.modifiers.capital = parseFloat(document.getElementById('mod-capital').value);
             GAME_CONFIG.modifiers.trench_def = parseFloat(document.getElementById('mod-trench').value);
             GAME_CONFIG.modifiers.small = parseFloat(document.getElementById('mod-small').value);
-
-            // DENİZ AYARLARI (Artık HTML'de sabit olduğu için direkt çekiyoruz)
             GAME_CONFIG.sea.count = parseInt(document.getElementById('sea-count').value);
             GAME_CONFIG.sea.size = parseInt(document.getElementById('sea-size').value);
 
             ROWS = 64; COLS = 64; 
-
             document.querySelector('#win-war .window-title').innerText = `War Room (STANDARD)`;
             document.getElementById('setup-screen').style.display = 'none';
             createBoards(); 
@@ -488,7 +484,7 @@
             const y = Math.floor(((e.clientY - rect.top) * scaleY) / (warCanvas.height / ROWS));
 
             if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
-                if (warGrid[y][x] === OCEAN) return; // Denize vurma
+                if (warGrid[y][x] === OCEAN) return;
                 let targetId = warGrid[y][x];
                 if (targetId !== GREY) {
                     showFloatingText(e.clientX, e.clientY, "SMITE!", "panic-text");
@@ -574,17 +570,37 @@
             return FACTORY_COST + (count * 1000); 
         }
 
-        function getArmyForce(teamId) {
+        // --- YENİ ASKER GÜCÜ HESAPLAMA (DÜZELTİLDİ) ---
+        // againstRealEnemy = true ise: Düşman ülkeye saldırıyor (Tüm gücünü kullan)
+        // againstRealEnemy = false ise: Gri alana saldırıyor (Küçük güç kullan)
+        function getArmyForce(teamId, againstRealEnemy = true) {
             if (teamId === GREY || teamId === OCEAN) return 0;
             let stats = teamStats[teamId];
             if (!stats || stats.size === 0) return 0;
+
             let baseRate = 0.02;
             let factoryBonus = (stats.factories || 0) * 0.00025; 
             let finalRate = baseRate + factoryBonus;
             if (teamId === REBEL) finalRate = 0.15; 
+            
+            // Toplam Ulusal Ordu
             let totalNationalArmy = Math.floor(stats.totalPop * finalRate);
-            let divider = stats.frontCount;
-            if (!divider || divider === 0) divider = stats.size;
+            
+            // PAYDA HESABI (YENİ SİSTEM)
+            let divider;
+            if (againstRealEnemy) {
+                // Eğer gerçek düşmana saldırıyorsak, orduyu sadece gerçek cephelere bölüştür.
+                // Eğer hiç gerçek cephe yoksa (barış zamanı), o zaman tüm sınırları kullan (savunma).
+                divider = (stats.realFrontCount > 0) ? stats.realFrontCount : stats.totalFrontCount;
+            } else {
+                // Eğer gri alana saldırıyorsak, orduyu çok bölme (keşif birlikleri).
+                // Orduyu tüm ülkeye yayılmış gibi düşün.
+                divider = stats.size * 2; 
+            }
+            
+            // Sıfıra bölme hatası önlemi
+            if (!divider || divider < 1) divider = 1;
+
             let armyPerCell = Math.floor(totalNationalArmy / divider);
             return armyPerCell;
         }
@@ -622,8 +638,6 @@
             simDate = new Date("1914-01-01"); modernEraTriggered = false;
             document.getElementById('date-display').innerText = "1914-01-01";
             
-            // --- HARİTA OLUŞTURMA (SADECE STANDART + RASTGELE DENİZ) ---
-            
             // 1. Önce her yeri KARA (GREY) yap
             for (let y = 0; y < ROWS; y++) {
                 let warRow=[], demoRow=[], timeRow=[], popRow=[], factRow=[], coreRow=[], permRow=[]; 
@@ -633,7 +647,7 @@
                 warGrid.push(warRow); demoGrid.push(demoRow); occupationTime.push(timeRow); populationGrid.push(popRow); factoryGrid.push(factRow); coreLevelGrid.push(coreRow); permanentCoreGrid.push(permRow); 
             }
 
-            // 2. Başkentleri Belirle (Standard Köşeler)
+            // 2. Başkentleri Belirle
             CAPITALS = { 
                 1: {x: 6, y: 6}, 2: {x: 6, y: 56}, 3: {x: 56, y: 6}, 4: {x: 56, y: 56}, 
                 5: {x: 32, y: 6}, 6: {x: 32, y: 56}, 7: {x: 6, y: 32}, 8: {x: 56, y: 32} 
@@ -641,7 +655,6 @@
             window.BACKUP_CAPITALS = JSON.parse(JSON.stringify(CAPITALS));
 
             // 3. DENİZLERİ RASTGELE YERLEŞTİR
-            // Kurallar: Başkentlere yakın olamaz.
             let seasPlaced = 0;
             let attempts = 0;
             let seaCount = GAME_CONFIG.sea.count;
@@ -651,28 +664,21 @@
                 attempts++;
                 let cx = Math.floor(Math.random() * COLS);
                 let cy = Math.floor(Math.random() * ROWS);
-                let radius = seaBaseRadius + Math.floor(Math.random() * 3); // Biraz varyasyon
+                let radius = seaBaseRadius + Math.floor(Math.random() * 3); 
 
-                // Güvenlik Kontrolü: Herhangi bir başkente çok yakın mı?
                 let safe = true;
                 for(let id in CAPITALS) {
                     let cap = CAPITALS[id];
                     let dist = Math.hypot(cx - cap.x, cy - cap.y);
-                    if(dist < radius + 6) { // Deniz yarıçapı + 6 birim güvenlik
-                        safe = false; 
-                        break; 
-                    }
+                    if(dist < radius + 6) { safe = false; break; }
                 }
 
                 if(safe) {
-                    // Denizi Çiz
                     for(let y=cy-radius; y<=cy+radius; y++) {
                         for(let x=cx-radius; x<=cx+radius; x++) {
                             if(y>=0 && y<ROWS && x>=0 && x<COLS) {
-                                // Dairesel çizim
                                 if(Math.hypot(x-cx, y-cy) <= radius) {
-                                    warGrid[y][x] = OCEAN;
-                                    demoGrid[y][x] = OCEAN;
+                                    warGrid[y][x] = OCEAN; demoGrid[y][x] = OCEAN;
                                 }
                             }
                         }
@@ -681,14 +687,12 @@
                 }
             }
 
-            // 4. Başkentleri ve Çevrelerini Ata (START GAMEPLAY)
+            // 4. Başkentleri ve Çevrelerini Ata
             for(let id in CAPITALS) {
                 let cap = CAPITALS[id]; let tid = parseInt(id);
-                // Başkent + 1 kare etrafı o ülkenin olsun
                 for(let dy=-1; dy<=1; dy++) for(let dx=-1; dx<=1; dx++) {
                     let ny = cap.y + dy; let nx = cap.x + dx;
                     if(ny>=0 && ny<ROWS && nx>=0 && nx<COLS) {
-                        // Sadece karaysa alabilir (Denizi ezmesin diye kontrol, ama zaten uzak spawnladık)
                         if(warGrid[ny][nx] !== OCEAN) {
                             warGrid[ny][nx] = tid; demoGrid[ny][nx] = tid; 
                             coreLevelGrid[ny][nx] = 3; permanentCoreGrid[ny][nx] = true;
@@ -697,19 +701,15 @@
                 }
             }
 
-            // Stratejik Noktalar (Rastgele)
             while(strategicPoints.length < 10) {
                 let rx = Math.floor(Math.random() * COLS); let ry = Math.floor(Math.random() * ROWS);
                 let safe = true;
                 Object.values(CAPITALS).forEach(cap => { if (Math.abs(cap.x - rx) + Math.abs(cap.y - ry) < 4) safe = false; });
                 if (strategicPoints.some(p => p.x === rx && p.y === ry)) safe = false;
-                
-                // ÖNEMLİ: Sadece GREY (Kara) olan yere yıldız koy, denize koyma
                 if (warGrid[ry][rx] === GREY) strategicPoints.push({x: rx, y: ry});
                 else safe = false; 
             }
 
-            // Arayüz
             TEAMS.forEach(t => { spawnPlane(t, 'FIGHTER'); spawnPlane(t, 'BOMBER'); });
             [...TEAMS, REBEL].forEach(teamId => { 
                 let short = BASE_TEAM_NAMES[teamId].substring(0,3);
@@ -769,6 +769,7 @@
                 let t1 = teams[0]; let t2 = teams[1];
                 let d1 = currentFrontData[key][t1];
                 let d2 = currentFrontData[key][t2];
+                // Blitz için asker limiti
                 if(!d1 || !d2 || d1.troops < 500 || d2.troops < 500) continue;
 
                 let id1 = `front-${key}-${t1}`;
@@ -980,7 +981,10 @@
         }
 
         function calculateStats() {
-            [...TEAMS, REBEL].forEach(id => { teamStats[id].gdp = 0; teamStats[id].totalPop = 0; teamStats[id].size = 0; teamStats[id].frontCount = 0; });
+            [...TEAMS, REBEL].forEach(id => { 
+                teamStats[id].gdp = 0; teamStats[id].totalPop = 0; teamStats[id].size = 0; 
+                teamStats[id].totalFrontCount = 0; teamStats[id].realFrontCount = 0; // YENİ
+            });
             let strBonus = {}; TEAMS.forEach(t=>strBonus[t]=0);
             strategicPoints.forEach(pt => { let owner = warGrid[pt.y][pt.x]; if (owner !== GREY && owner !== OCEAN) strBonus[owner] = (strBonus[owner]||0) + 0.05; });
             
@@ -1000,16 +1004,20 @@
                 teamStats[owner].gdp += (GDP_PER_CELL * efficiency);
                 teamStats[owner].size++;
 
-                let isFrontLine = false;
+                // --- YENİ CEPHE SAYIM MANTIĞI ---
                 let dirs = [[0,1],[0,-1],[1,0],[-1,0]];
                 for(let d of dirs) {
                     let ny = y + d[0]; let nx = x + d[1];
                     if(ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
                         let neighborId = warGrid[ny][nx];
-                        if(neighborId !== owner && !areAllies(owner, neighborId)) { isFrontLine = true; break; }
+                        if(neighborId !== owner && neighborId !== OCEAN && !areAllies(owner, neighborId)) { 
+                             teamStats[owner].totalFrontCount++;
+                             if (neighborId !== GREY) {
+                                 teamStats[owner].realFrontCount++; // Sadece gerçek düşman sınırı
+                             }
+                        }
                     }
                 }
-                if(isFrontLine) teamStats[owner].frontCount++;
             }
             
             let minPop = Infinity; smallestTeamId = null;
@@ -1246,8 +1254,13 @@
                         if(c2!==c1 && c2!==OCEAN && !areAllies(c1, c2)) {
                             let key = c1<c2 ? `${c1}-${c2}` : `${c2}-${c1}`;
                             if(!fronts[key]) fronts[key] = {[c1]:{x:0,y:0,n:0,troops:0}, [c2]:{x:0,y:0,n:0,troops:0}};
-                            fronts[key][c1].x+=x; fronts[key][c1].y+=y; fronts[key][c1].n++; fronts[key][c1].troops+=getArmyForce(c1);
-                            fronts[key][c2].x+=n.x; fronts[key][c2].y+=n.y; fronts[key][c2].n++; fronts[key][c2].troops+=getArmyForce(c2);
+                            
+                            // Asker gücünü hesaplarken hedefin GREY olup olmamasına göre davran
+                            let force1 = getArmyForce(c1, c2 !== GREY);
+                            let force2 = getArmyForce(c2, c1 !== GREY);
+
+                            fronts[key][c1].x+=x; fronts[key][c1].y+=y; fronts[key][c1].n++; fronts[key][c1].troops+=force1;
+                            fronts[key][c2].x+=n.x; fronts[key][c2].y+=n.y; fronts[key][c2].n++; fronts[key][c2].troops+=force2;
                         }
                     }
                 });
@@ -1502,9 +1515,14 @@
                 if(rebelSafeTimer > 0 && targetC === REBEL) return;
                 if(targetC === cell.c || areAllies(cell.c, targetC)) return;
 
-                let atkArmy = getArmyForce(cell.c);
+                // --- SAVAŞ GÜCÜ HESAPLAMA (DÜZELTİLDİ) ---
+                // Eğer hedef Gri (Sahipsiz) ise saldırı gücü daha düşük ve yaygın
+                // Eğer hedef Düşman ise saldırı gücü çok yüksek ve odaklı
+                let isRealWar = (targetC !== GREY);
+                let atkArmy = getArmyForce(cell.c, isRealWar);
+                
                 let neutralResistance = 20; 
-                let defArmy = (targetC !== GREY) ? getArmyForce(targetC) : neutralResistance;
+                let defArmy = (targetC !== GREY) ? getArmyForce(targetC, true) : neutralResistance;
 
                 if(targetC !== GREY && CAPITALS[targetC] && CAPITALS[targetC].x === target.x && CAPITALS[targetC].y === target.y) { 
                     defArmy *= GAME_CONFIG.modifiers.capital; 
