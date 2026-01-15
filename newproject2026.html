@@ -1240,6 +1240,7 @@
                 teamStats[owner].gdp += (GDP_PER_CELL * efficiency);
                 teamStats[owner].size++;
 
+                // --- YENİ CEPHE SAYIM MANTIĞI ---
                 let dirs = [[0,1],[0,-1],[1,0],[-1,0]];
                 for(let d of dirs) {
                     let ny = y + d[0]; let nx = x + d[1];
