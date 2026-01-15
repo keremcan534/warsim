@@ -359,7 +359,6 @@
 <script>
     document.addEventListener("DOMContentLoaded", function() {
 
-        // --- PENCERE SÜRÜKLEME ---
         let zIndexCounter = 100;
         document.querySelectorAll('.draggable-window').forEach(win => {
             const header = win.querySelector('.window-header');
@@ -374,12 +373,12 @@
             });
         });
 
-        // --- GLOBAL CONFIG (VARSAYILANLAR) ---
+        // --- GLOBAL CONFIG VE DEĞİŞKENLER ---
         let GAME_CONFIG = {
             trench: { min: 0.9, max: 1.1 },
             mobile: { start: 1936, min: 0.8, max: 1.5 },
             modern: { start: 1950, min: 0.5, max: 2.0 },
-            modifiers: { capital: 5.0, trench_def: 1.5, small: 3.0 } // YENİ EKLENDİ
+            modifiers: { capital: 5.0, trench_def: 1.5, small: 3.0 }
         };
 
         let ROWS = 64; let COLS = 64; 
@@ -440,7 +439,6 @@
 
         // --- MENÜDEN BAŞLATMA VE AYAR OKUMA ---
         document.getElementById('btn-start-game').addEventListener('click', function() {
-            // 1. Çağ Ayarları
             GAME_CONFIG.trench.min = parseFloat(document.getElementById('tr-min').value) / 100;
             GAME_CONFIG.trench.max = parseFloat(document.getElementById('tr-max').value) / 100;
 
@@ -452,12 +450,10 @@
             GAME_CONFIG.modern.min = parseFloat(document.getElementById('mod-min').value) / 100;
             GAME_CONFIG.modern.max = parseFloat(document.getElementById('mod-max').value) / 100;
 
-            // 2. Modifier Ayarları (YENİ)
             GAME_CONFIG.modifiers.capital = parseFloat(document.getElementById('mod-capital').value);
             GAME_CONFIG.modifiers.trench_def = parseFloat(document.getElementById('mod-trench').value);
             GAME_CONFIG.modifiers.small = parseFloat(document.getElementById('mod-small').value);
 
-            // 3. Başlatma
             ROWS = 64; COLS = 64; 
             CAPITALS = { 
                 1: {x: 6, y: 6}, 2: {x: 6, y: 56}, 3: {x: 56, y: 6}, 4: {x: 56, y: 56}, 
@@ -537,6 +533,7 @@
         }
 
         function drawFX() {
+            if(!ctxFx) return;
             const rect = fxCanvas.getBoundingClientRect();
             fxCanvas.width = rect.width; fxCanvas.height = rect.height;
             ctxFx.clearRect(0,0, fxCanvas.width, fxCanvas.height);
@@ -768,6 +765,7 @@
         }
 
         function drawWarBoard() {
+            if(!ctxWar) return;
             const rect = warCanvas.getBoundingClientRect();
             warCanvas.width = rect.width; warCanvas.height = rect.height;
             const w = warCanvas.width; const h = warCanvas.height;
@@ -838,6 +836,7 @@
         }
 
         function drawPlanesAndDiplomacy() {
+            if(!ctxAir) return;
             const rect = airCanvas.getBoundingClientRect();
             airCanvas.width = rect.width; airCanvas.height = rect.height;
             const w = airCanvas.width; const h = airCanvas.height;
@@ -911,7 +910,6 @@
             for (let y = 0; y < ROWS; y++) for (let x = 0; x < COLS; x++) {
                 const owner = warGrid[y][x]; if (owner === GREY) continue;
                 
-                // --- SAFE VERİM SİSTEMİ ---
                 let efficiency = 0.05; 
                 if (demoGrid[y][x] === owner) {
                     let lvl = (coreLevelGrid[y] && coreLevelGrid[y][x] !== undefined) ? coreLevelGrid[y][x] : 0;
@@ -1091,8 +1089,9 @@
         }
         
         function updateView() {
-            const dRect = demoCanvas.getBoundingClientRect();
-            // Not: width/height ayarını createBoards'da yapmıştık, burada sadece clear yapıyoruz
+            if(!ctxDemo || !ctxPop || !ctxFact) return; // Güvenlik kontrolü
+
+            // Canvas boyutlarını sürekli sıfırlama, sadece temizle
             const dCW = demoCanvas.width / COLS; const dCH = demoCanvas.height / ROWS;
             ctxDemo.clearRect(0, 0, demoCanvas.width, demoCanvas.height);
             
@@ -1125,7 +1124,7 @@
                     ctxDemo.strokeRect(x*dCW, y*dCH, dCW, dCH);
                 }
 
-                // --- POPULATION MAP (SAYILAR GERİ GELDİ) ---
+                // --- POPULATION MAP ---
                 let pop = populationGrid[y][x];
                 let ratio = Math.min(pop / INITIAL_POPULATION, 1);
                 let r = Math.floor(ratio * 255);
