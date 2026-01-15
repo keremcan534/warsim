@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OS WarSim v60.0: Naval Warfare (Final)</title>
+    <title>OS WarSim v60.1: Wiki & Menu Update</title>
     <style>
         /* --- GENERAL SETTINGS --- */
         body {
@@ -218,7 +218,30 @@
             border-radius: 4px;       /* Köşeleri hafif yuvarla */
             box-shadow: 0 0 20px rgba(0,0,0,0.5); /* Hafif gölge ekle */
             border: 1px solid #333;
-        }        
+        }
+
+        /* --- WIKI SCREEN STYLES --- */
+        #wiki-screen {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.95); z-index: 1000000;
+            display: none; justify-content: center; align-items: center;
+        }
+        .wiki-box {
+            background: #151515; border: 1px solid #444; padding: 30px; border-radius: 8px;
+            width: 700px; max-height: 80vh; overflow-y: auto;
+            box-shadow: 0 0 50px rgba(52, 152, 219, 0.2);
+            color: #ccc;
+        }
+        .wiki-box h1 { color: #3498db; border-bottom: 1px solid #333; padding-bottom: 10px; margin-bottom: 20px; font-size: 24px; }
+        .wiki-box p { line-height: 1.6; margin-bottom: 15px; font-size: 14px; }
+        .wiki-box h2 { color: #e67e22; font-size: 18px; margin-top: 20px; margin-bottom: 10px; }
+        #btn-close-wiki {
+            margin-top: 20px; background: #e74c3c; border-color: #c0392b; width: 100%; padding: 10px; font-size: 14px;
+        }
+        #btn-open-wiki {
+            width: 100%; margin-top: 10px; background: #34495e; border: 1px solid #444; padding: 10px; color: #ccc;
+        }
+        #btn-open-wiki:hover { background: #2c3e50; color: white; }
     </style>
 </head>
 <body class="running">
@@ -230,9 +253,24 @@
         <button id="btn-restart" style="font-size:20px; padding:15px 40px; background:#27ae60; border-color:#2ecc71;">NEW SIMULATION</button>
     </div>
 
+    <div id="wiki-screen">
+        <div class="wiki-box">
+            <h1>OS WARSIM KILAVUZU</h1>
+            
+            <p><strong>Hoşgeldiniz!</strong> Buraya oyunun hikayesi, kuralları veya taktikleri gelecek.</p>
+            
+            <h2>Nasıl Oynanır?</h2>
+            <p>Şu anda bu alan yapım aşamasındadır. Daha sonra buraya detaylı metin eklenecektir.</p>
+
+            <p><em>(Text placeholder - Wiki content goes here)</em></p>
+
+            <button id="btn-close-wiki">KAPAT / CLOSE</button>
+        </div>
+    </div>
+
     <div class="taskbar">
         <div style="display:flex; align-items:center;">
-            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v60.0 NAVAL WARFARE</span></h1>
+            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v60.1 WIKI EDITION</span></h1>
             <span style="margin: 0 15px; color: #444;">|</span>
             <div style="display:flex; gap:10px;">
                 <div id="date-display" style="font-family: 'Courier New', monospace; font-weight: bold; color: #fff; font-size: 14px; background: #222; padding: 2px 8px; border-radius: 4px; border: 1px solid #444;">1914-01-01</div>
@@ -246,6 +284,8 @@
             <div style="width:10px;"></div>
             <button id="btn-reset">Reset</button>
             <button id="btn-pause">Pause</button>
+            <div style="width:10px;"></div>
+            <button id="btn-back-menu" style="background-color:#d35400; border-color:#e67e22;">⚠ MENU</button>
         </div>
     </div>
 
@@ -319,6 +359,7 @@
         </div>
 
         <button id="btn-start-game" style="width:100%; padding:12px; font-size:16px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">SİMÜLASYONU BAŞLAT</button>
+        <button id="btn-open-wiki">📖 WIKI / KILAVUZ</button>
     </div>
 </div>
     <div id="win-log" class="draggable-window" style="bottom: 20px; right: 20px; z-index: 9; width: 350px; height: 200px;">
@@ -460,6 +501,15 @@
         document.getElementById('btn-pause').addEventListener('click', togglePause);
         document.getElementById('btn-faster').addEventListener('click', () => changeSpeed(-20)); 
         document.getElementById('btn-slower').addEventListener('click', () => changeSpeed(20));
+        
+        // --- YENİ BUTON EVENTLERİ ---
+        document.getElementById('btn-open-wiki').addEventListener('click', () => { document.getElementById('wiki-screen').style.display = 'flex'; });
+        document.getElementById('btn-close-wiki').addEventListener('click', () => { document.getElementById('wiki-screen').style.display = 'none'; });
+        document.getElementById('btn-back-menu').addEventListener('click', () => {
+            clearInterval(intervalId);
+            isPaused = true;
+            document.getElementById('setup-screen').style.display = 'flex';
+        });
 
         // --- BAŞLATMA ---
         document.getElementById('btn-start-game').addEventListener('click', function() {
