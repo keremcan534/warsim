@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OS WarSim v60.1: Wiki & Menu Update</title>
+    <title>OS WarSim v60.2: Sandbox Edition</title>
     <style>
         /* --- GENERAL SETTINGS --- */
         body {
@@ -53,8 +53,30 @@
         .win-btn.close { background-color: #ff5f56; border: 1px solid #e0443e; }
         .window-content { padding: 0; display: flex; flex-direction: column; flex-grow: 1; width: 100%; height: 100%; position: relative; background: #000;}
 
+        /* --- TOOLBAR PALETTE --- */
+        .tool-grid {
+            display: grid; grid-template-columns: repeat(4, 1fr); gap: 4px; padding: 5px;
+        }
+        .tool-btn {
+            height: 30px; border: 1px solid #444; border-radius: 3px; cursor: pointer;
+            display: flex; justify-content: center; align-items: center; font-size: 14px;
+            background: #222; transition: 0.1s;
+        }
+        .tool-btn:hover { border-color: #fff; }
+        .tool-btn.active { border: 2px solid white; box-shadow: 0 0 5px white; }
+        .tool-label { font-size: 9px; color: #888; text-align: center; margin-bottom: 5px; text-transform: uppercase; letter-spacing: 1px; }
+
+        /* --- INSPECTOR --- */
+        #inspector-tooltip {
+            position: absolute; pointer-events: none; background: rgba(0,0,0,0.9); border: 1px solid #777;
+            padding: 8px; border-radius: 4px; z-index: 999999; display: none; font-family: 'Consolas', monospace;
+            font-size: 11px; color: white; width: 150px; box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        }
+        .insp-row { display: flex; justify-content: space-between; margin-bottom: 2px; }
+        .insp-val { color: #3498db; font-weight: bold; }
+
         /* --- WAR BOARD --- */
-        .board-wrapper { position: relative; width: 100%; height: 100%; flex-grow: 1; background:#000; overflow: hidden; }
+        .board-wrapper { position: relative; width: 100%; height: 100%; flex-grow: 1; background:#000; overflow: hidden; cursor: crosshair; }
         canvas { display: block; width: 100%; height: 100%; }
         #war-canvas { position: absolute; top:0; left:0; z-index: 1; }
         #air-layer { position: absolute; top: 0; left: 0; pointer-events: none; z-index: 200; }
@@ -243,10 +265,12 @@
         }
         #btn-open-wiki:hover { background: #2c3e50; color: white; }
     </style>
+<link rel="stylesheet" href="/index.css">
 </head>
 <body class="running">
 
     <div id="nuke-overlay"></div>
+    <div id="inspector-tooltip"></div>
 
     <div id="victory-screen">
         <div id="victory-text">WINNER: RED</div>
@@ -255,22 +279,23 @@
 
     <div id="wiki-screen">
         <div class="wiki-box">
-            <h1>OS WARSIM KILAVUZU</h1>
+            <h1>OS WARSIM GUIDE</h1>
             
-            <p><strong>Hoşgeldiniz!</strong> Buraya oyunun hikayesi, kuralları veya taktikleri gelecek.</p>
+            <p><strong>Welcome!</strong> OS WarSim is an automated simulation of geopolitical conflict, economics, and nuclear deterrence.</p>
             
-            <h2>Nasıl Oynanır?</h2>
-            <p>Şu anda bu alan yapım aşamasındadır. Daha sonra buraya detaylı metin eklenecektir.</p>
+            <h2>Sandbox Mode (New!)</h2>
+            <p>Use the "God Tools" window to paint nations, alter terrain, or drop nukes manually. Click a tool to select it, then drag on the map.</p>
+            
+            <h2>Mechanics</h2>
+            <p>Nations grow GDP, build factories, and eventually build nukes. If a nation is losing badly or gets too aggressive, alliances may form or nuclear options may be considered.</p>
 
-            <p><em>(Text placeholder - Wiki content goes here)</em></p>
-
-            <button id="btn-close-wiki">KAPAT / CLOSE</button>
+            <button id="btn-close-wiki">CLOSE GUIDE</button>
         </div>
     </div>
 
     <div class="taskbar">
         <div style="display:flex; align-items:center;">
-            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v60.1 WIKI EDITION</span></h1>
+            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v60.2 SANDBOX</span></h1>
             <span style="margin: 0 15px; color: #444;">|</span>
             <div style="display:flex; gap:10px;">
                 <div id="date-display" style="font-family: 'Courier New', monospace; font-weight: bold; color: #fff; font-size: 14px; background: #222; padding: 2px 8px; border-radius: 4px; border: 1px solid #444;">1914-01-01</div>
@@ -302,16 +327,15 @@
 <div id="setup-screen">
     <div class="setup-box" style="width: 700px;">
         
-        <img src="logo.png" id="menu-logo" alt="Oyun Logosu">
         <h1 style="color:#e67e22; text-align:center; margin-bottom:15px; border-bottom:1px solid #444; padding-bottom:10px;">OS WARSIM: CONFIG</h1>
         
         <div style="display:flex; gap:10px; margin-bottom:15px; justify-content:center; background:#222; padding:10px; border-radius:4px; border:1px solid #444;">
             <div class="input-group" style="width:150px;">
-                <label style="color:#3498db; font-weight:bold;">Deniz Sayısı:</label>
+                <label style="color:#3498db; font-weight:bold;">Sea Count:</label>
                 <input type="number" id="sea-count" value="15" min="0" max="50">
             </div>
             <div class="input-group" style="width:150px;">
-                <label style="color:#3498db; font-weight:bold;">Deniz Boyutu:</label>
+                <label style="color:#3498db; font-weight:bold;">Sea Size:</label>
                 <input type="number" id="sea-size" value="5" min="1" max="15">
             </div>
         </div>
@@ -324,13 +348,13 @@
             </div>
             <div class="era-box">
                 <h3 style="color:#e67e22">MOBILE</h3>
-                <div class="input-group"><label>Yıl:</label><input type="number" id="mob-year" value="1936"></div>
+                <div class="input-group"><label>Year:</label><input type="number" id="mob-year" value="1936"></div>
                 <div class="input-group"><label>Min (%):</label><input type="number" id="mob-min" value="80"></div>
                 <div class="input-group"><label>Max (%):</label><input type="number" id="mob-max" value="150"></div>
             </div>
             <div class="era-box">
                 <h3 style="color:#3498db">MODERN</h3>
-                <div class="input-group"><label>Yıl:</label><input type="number" id="mod-year" value="1950"></div>
+                <div class="input-group"><label>Year:</label><input type="number" id="mod-year" value="1950"></div>
                 <div class="input-group"><label>Min (%):</label><input type="number" id="mod-min" value="50"></div>
                 <div class="input-group"><label>Max (%):</label><input type="number" id="mod-max" value="200"></div>
             </div>
@@ -340,26 +364,26 @@
         <div style="display:flex; gap:10px; margin-bottom:20px;">
             <div class="era-box" style="background:#222;">
                 <div class="input-group">
-                    <label style="color:#e74c3c">Başkent Bonusu (x):</label>
+                    <label style="color:#e74c3c">Capital Bonus (x):</label>
                     <input type="number" id="mod-capital" value="5.0" step="0.1">
                 </div>
             </div>
             <div class="era-box" style="background:#222;">
                 <div class="input-group">
-                    <label style="color:#f1c40f">Siper Defansı (x):</label>
+                    <label style="color:#f1c40f">Trench Def (x):</label>
                     <input type="number" id="mod-trench" value="1.5" step="0.1">
                 </div>
             </div>
             <div class="era-box" style="background:#222;">
                 <div class="input-group">
-                    <label style="color:#3498db">Küçük Ülke (x):</label>
+                    <label style="color:#3498db">Small Nation (x):</label>
                     <input type="number" id="mod-small" value="3.0" step="0.1">
                 </div>
             </div>
         </div>
 
-        <button id="btn-start-game" style="width:100%; padding:12px; font-size:16px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">SİMÜLASYONU BAŞLAT</button>
-        <button id="btn-open-wiki">📖 WIKI / KILAVUZ</button>
+        <button id="btn-start-game" style="width:100%; padding:12px; font-size:16px; background:#27ae60; color:white; border:none; border-radius:4px; cursor:pointer; font-weight:bold;">START SIMULATION</button>
+        <button id="btn-open-wiki">📖 WIKI / HELP</button>
     </div>
 </div>
     <div id="win-log" class="draggable-window" style="bottom: 20px; right: 20px; z-index: 9; width: 350px; height: 200px;">
@@ -383,27 +407,60 @@
         </div>
     </div>
 
-    <div id="win-economy" class="draggable-window" style="top: 70px; left: 1030px; z-index: 10; width: 320px; height: 350px;">
+    <!-- NEW TOOLBOX WINDOW -->
+    <div id="win-tools" class="draggable-window" style="top: 290px; left: 20px; z-index: 100; width: 250px; height: 350px;">
+        <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">God Tools (Sandbox)</div></div>
+        <div class="window-content" style="padding: 5px;">
+            <div class="tool-label">Paint Nations</div>
+            <div class="tool-grid">
+                <div class="tool-btn" data-tool="1" style="background:#e74c3c;">R</div>
+                <div class="tool-btn" data-tool="2" style="background:#3498db;">B</div>
+                <div class="tool-btn" data-tool="3" style="background:#2ecc71;">G</div>
+                <div class="tool-btn" data-tool="4" style="background:#f1c40f; color:black;">Y</div>
+                <div class="tool-btn" data-tool="5" style="background:#1abc9c;">C</div>
+                <div class="tool-btn" data-tool="6" style="background:#9b59b6;">P</div>
+                <div class="tool-btn" data-tool="7" style="background:#e67e22;">O</div>
+                <div class="tool-btn" data-tool="8" style="background:#ff7979;">Pi</div>
+                <div class="tool-btn" data-tool="9" style="background:#7f8c8d;">REB</div>
+                <div class="tool-btn" data-tool="0" style="background:#333;">GREY</div>
+                <div class="tool-btn" data-tool="10" style="background:#0b1d35;">SEA</div>
+            </div>
+            <div class="tool-label" style="margin-top:10px;">Paint Terrain</div>
+            <div class="tool-grid" style="grid-template-columns: repeat(3, 1fr);">
+                <div class="tool-btn" data-tool="mount">⛰️ MNT</div>
+                <div class="tool-btn" data-tool="forest">🌲 FOR</div>
+                <div class="tool-btn" data-tool="plain">🟩 PLN</div>
+            </div>
+            <div class="tool-label" style="margin-top:10px;">Actions</div>
+            <div class="tool-grid" style="grid-template-columns: repeat(2, 1fr);">
+                <div class="tool-btn" data-tool="smite">⚡ SMITE</div>
+                <div class="tool-btn" data-tool="nuke">☢️ NUKE</div>
+            </div>
+            <div style="margin-top:10px; font-size:10px; color:#666; text-align:center;">Select a tool and drag on map.</div>
+        </div>
+    </div>
+
+    <div id="win-economy" class="draggable-window" style="top: 70px; left: 1180px; z-index: 10; width: 320px; height: 350px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Industry & Nukes</div></div>
         <div class="window-content"><div id="chart-container" class="chart-container"></div></div>
     </div>
 
-    <div id="win-population" class="draggable-window" style="top: 440px; left: 1030px; z-index: 11; width: 320px; height: 320px;">
+    <div id="win-population" class="draggable-window" style="top: 440px; left: 1180px; z-index: 11; width: 320px; height: 320px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Demography Map</div></div>
         <div class="window-content" style="background:black;"><canvas id="pop-canvas" style="width:100%; height:100%;"></canvas></div>
     </div>
 
-    <div id="win-demography" class="draggable-window" style="top: 290px; left: 20px; z-index: 10; width: 250px; height: 250px;">
+    <div id="win-demography" class="draggable-window" style="top: 650px; left: 20px; z-index: 10; width: 250px; height: 200px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Political Map</div></div>
         <div class="window-content" style="background:black;"><canvas id="demo-canvas" style="width:100%; height:100%;"></canvas></div>
     </div>
 
-    <div id="win-factory" class="draggable-window" style="top: 290px; left: 280px; z-index: 10; width: 250px; height: 250px;">
+    <div id="win-factory" class="draggable-window" style="top: 440px; left: 280px; z-index: 10; width: 250px; height: 200px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Industrial Map</div></div>
         <div class="window-content" style="background:black;"><canvas id="factory-canvas" style="width:100%; height:100%;"></canvas></div>
     </div>
 
-    <div id="win-draft" class="draggable-window" style="top: 550px; left: 20px; z-index: 10; width: 220px; height: 280px;">
+    <div id="win-draft" class="draggable-window" style="top: 650px; left: 280px; z-index: 10; width: 220px; height: 200px;">
         <div class="window-header"><div class="window-controls"><div class="win-btn close"></div></div><div class="window-title">Conscription Rates</div></div>
         <div class="window-content"><div id="draft-container" class="chart-container"></div></div>
     </div>
@@ -453,7 +510,7 @@
         const REBEL = 9;
         
         const TEAMS = [RED, BLUE, GREEN, YELLOW, CYAN, PURPLE, ORANGE, PINK]; 
-        const BASE_TEAM_NAMES = { 1: "RED", 2: "BLUE", 3: "GREEN", 4: "YELLOW", 5: "CYAN", 6: "PURPLE", 7: "ORANGE", 8: "PINK", 9: "REBELS", 0: "NEUTRAL" };
+        const BASE_TEAM_NAMES = { 1: "RED", 2: "BLUE", 3: "GREEN", 4: "YELLOW", 5: "CYAN", 6: "PURPLE", 7: "ORANGE", 8: "PINK", 9: "REBELS", 0: "NEUTRAL", 10: "OCEAN" };
         
         const COLOR_HEX = { 
             1: '#e74c3c', 2: '#3498db', 3: '#2ecc71', 4: '#f1c40f', 
@@ -484,6 +541,9 @@
         let fxParticles = []; 
         let modernEraTriggered = false;
         let liberationTriggered = false;
+        
+        let selectedTool = null;
+        let isDrawing = false;
 
         const warCanvas = document.getElementById('war-canvas'); const ctxWar = warCanvas.getContext('2d');
         const airCanvas = document.getElementById('air-layer'); const ctxAir = airCanvas.getContext('2d');
@@ -495,6 +555,7 @@
         const labelsLayerEl = document.getElementById('labels-layer');
         const victoryScreen = document.getElementById('victory-screen');
         const victoryText = document.getElementById('victory-text');
+        const inspectorTooltip = document.getElementById('inspector-tooltip');
 
         document.getElementById('btn-reset').addEventListener('click', resetGame);
         document.getElementById('btn-restart').addEventListener('click', resetGame);
@@ -509,6 +570,19 @@
             clearInterval(intervalId);
             isPaused = true;
             document.getElementById('setup-screen').style.display = 'flex';
+        });
+
+        // --- TOOLBOX EVENTS ---
+        document.querySelectorAll('.tool-btn').forEach(btn => {
+            btn.addEventListener('click', function() {
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                if (selectedTool === this.dataset.tool) {
+                    selectedTool = null; // Toggle off
+                } else {
+                    selectedTool = this.dataset.tool;
+                    this.classList.add('active');
+                }
+            });
         });
 
         // --- BAŞLATMA ---
@@ -533,8 +607,8 @@
             createBoards(); 
         });
 
-        // --- GOD MODE ---
-        warCanvas.addEventListener('mousedown', function(e) {
+        // --- INPUT HANDLING (SANDBOX & INSPECTOR) ---
+        function handleInput(e) {
             const rect = warCanvas.getBoundingClientRect();
             const scaleX = warCanvas.width / rect.width;
             const scaleY = warCanvas.height / rect.height;
@@ -542,19 +616,111 @@
             const y = Math.floor(((e.clientY - rect.top) * scaleY) / (warCanvas.height / ROWS));
 
             if (x >= 0 && x < COLS && y >= 0 && y < ROWS) {
-                if (warGrid[y][x] === OCEAN) return;
-                let targetId = warGrid[y][x];
-                if (targetId !== GREY) {
-                    showFloatingText(e.clientX, e.clientY, "SMITE!", "panic-text");
-                    spawnParticles((x * (warCanvas.width / COLS)) + 10, (y * (warCanvas.height / ROWS)) + 10, 'fire');
-                    populationGrid[y][x] = Math.floor(populationGrid[y][x] * 0.1); 
-                    warGrid[y][x] = GREY;
-                    occupationTime[y][x] = 0;
-                    if(factoryGrid[y][x]===1) { factoryGrid[y][x]=0; teamStats[targetId].factories--; }
-                    addLog(`⚡ GOD MODE: Smited region at [${x},${y}]`, 'annihilation');
+                // INSPECTOR LOGIC
+                if (e.type === 'mousemove' && !isDrawing) {
+                    inspectorTooltip.style.display = 'block';
+                    inspectorTooltip.style.left = (e.clientX + 15) + 'px';
+                    inspectorTooltip.style.top = (e.clientY + 15) + 'px';
+                    
+                    let ownerId = warGrid[y][x];
+                    let ownerName = BASE_TEAM_NAMES[ownerId] || "Unknown";
+                    let pop = populationGrid[y][x] || 0;
+                    let terr = "Plain";
+                    if(warGrid[y][x] === OCEAN) terr = "Ocean";
+                    else if(terrainGrid[y][x] === TERRAIN_MOUNTAIN) terr = "Mountain";
+                    else if(terrainGrid[y][x] === TERRAIN_FOREST) terr = "Forest";
+
+                    inspectorTooltip.innerHTML = `
+                        <div class="insp-row"><span>Loc:</span> <span class="insp-val">[${x},${y}]</span></div>
+                        <div class="insp-row"><span>Own:</span> <span class="insp-val" style="color:${COLOR_HEX[ownerId]}">${ownerName}</span></div>
+                        <div class="insp-row"><span>Pop:</span> <span class="insp-val">${(pop/1000).toFixed(1)}k</span></div>
+                        <div class="insp-row"><span>Ter:</span> <span class="insp-val">${terr}</span></div>
+                    `;
+                }
+
+                // TOOL LOGIC
+                if (selectedTool && (e.type === 'mousedown' || (e.type === 'mousemove' && isDrawing))) {
+                    if (selectedTool === 'smite') {
+                        if (warGrid[y][x] !== OCEAN && warGrid[y][x] !== GREY) {
+                            showFloatingText(e.clientX, e.clientY, "SMITE!", "panic-text");
+                            spawnParticles((x * (warCanvas.width / COLS)) + 10, (y * (warCanvas.height / ROWS)) + 10, 'fire');
+                            populationGrid[y][x] = Math.floor(populationGrid[y][x] * 0.1); 
+                            let oldC = warGrid[y][x];
+                            warGrid[y][x] = GREY;
+                            occupationTime[y][x] = 0;
+                            if(factoryGrid[y][x]===1) { factoryGrid[y][x]=0; if(teamStats[oldC]) teamStats[oldC].factories--; }
+                        }
+                    } else if (selectedTool === 'nuke') {
+                         if (e.type === 'mousedown') { // Single click for nuke
+                             triggerNukeVisuals(x, y);
+                             addLog(`☢️ GOD MODE NUKE at [${x},${y}]`, 'nuke');
+                             let offsets = [{dx:0, dy:0}, {dx:1, dy:0}, {dx:0, dy:1}, {dx:1, dy:1}];
+                             offsets.forEach(off => {
+                                 let nx = x + off.dx; let ny = y + off.dy;
+                                 if(ny >= 0 && ny < ROWS && nx >= 0 && nx < COLS) {
+                                     let victim = warGrid[ny][nx];
+                                     if(factoryGrid[ny][nx] === 1) { factoryGrid[ny][nx] = 0; if(teamStats[victim]) teamStats[victim].factories = Math.max(0, teamStats[victim].factories - 1); }
+                                     if (warGrid[ny][nx] !== OCEAN) {
+                                         warGrid[ny][nx] = GREY; populationGrid[ny][nx] = 0; occupationTime[ny][nx] = 0;
+                                     }
+                                 }
+                             });
+                         }
+                    } else if (selectedTool === 'mount') {
+                        if(warGrid[y][x] !== OCEAN) terrainGrid[y][x] = TERRAIN_MOUNTAIN;
+                    } else if (selectedTool === 'forest') {
+                        if(warGrid[y][x] !== OCEAN) terrainGrid[y][x] = TERRAIN_FOREST;
+                    } else if (selectedTool === 'plain') {
+                        terrainGrid[y][x] = TERRAIN_PLAIN;
+                    } else {
+                        // Paint Nation
+                        let tid = parseInt(selectedTool);
+                        if (!isNaN(tid)) {
+                            if (tid === OCEAN) {
+                                warGrid[y][x] = OCEAN; demoGrid[y][x] = OCEAN; populationGrid[y][x] = 0;
+                            } else {
+                                warGrid[y][x] = tid; demoGrid[y][x] = tid;
+                                if (populationGrid[y][x] < 100) populationGrid[y][x] = 5000; // Give pop to painted land
+                            }
+                            occupationTime[y][x] = 0;
+                        }
+                    }
                 }
             }
+        }
+
+        warCanvas.addEventListener('mousedown', function(e) {
+            isDrawing = true;
+            handleInput(e);
         });
+        
+        window.addEventListener('mouseup', function() {
+            isDrawing = false;
+        });
+
+        warCanvas.addEventListener('mousemove', function(e) {
+            handleInput(e);
+        });
+
+        warCanvas.addEventListener('mouseleave', function() {
+            inspectorTooltip.style.display = 'none';
+        });
+
+        function triggerNukeVisuals(x, y) {
+            let cx = x * (warCanvas.width/COLS);
+            let cy = y * (warCanvas.height/ROWS);
+            spawnParticles(cx, cy, 'fire');
+            let div = document.createElement('div');
+            div.style.position='absolute'; div.style.left=cx+'px'; div.style.top=cy+'px';
+            div.style.width='50px'; div.style.height='50px'; div.style.background='radial-gradient(circle, #fff 0%, #f1c40f 40%, rgba(231,76,60,0) 70%)';
+            div.style.transform='translate(-50%,-50%)'; div.style.borderRadius='50%'; div.style.pointerEvents='none';
+            div.style.zIndex='9999'; div.style.animation='pop-up-fade 1s forwards';
+            labelsLayerEl.appendChild(div);
+            setTimeout(()=>div.remove(), 1000);
+            
+            document.getElementById('nuke-overlay').style.opacity = 0.8;
+            setTimeout(() => { document.getElementById('nuke-overlay').style.opacity = 0; }, 200);
+        }
 
         function changeSpeed(delta) {
             let newSpeed = currentSpeed + delta;
@@ -579,7 +745,10 @@
             if(logContainer.children.length > 50) logContainer.removeChild(logContainer.lastChild);
         }
 
-        function triggerNukeEffect() {}
+        function triggerNukeEffect() {
+            document.getElementById('nuke-overlay').style.opacity = 0.8;
+            setTimeout(() => { document.getElementById('nuke-overlay').style.opacity = 0; }, 200);
+        }
 
         function spawnParticles(x, y, type) {
             const count = (type === 'fire') ? 10 : 30;
@@ -1292,6 +1461,7 @@
 
             if(targetX !== undefined) {
                 triggerNukeEffect();
+                triggerNukeVisuals(targetX, targetY);
                 addLog(`☢️ ${BASE_TEAM_NAMES[attackerId]} NUKED ${BASE_TEAM_NAMES[targetId]} (2x2 Grid)!`, 'nuke');
                 let offsets = [{dx:0, dy:0}, {dx:1, dy:0}, {dx:0, dy:1}, {dx:1, dy:1}];
                 offsets.forEach(off => {
@@ -1844,5 +2014,6 @@
         }
     });
     </script>
+<script type="module" src="/index.tsx"></script>
 </body>
 </html>
