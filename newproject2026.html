@@ -403,7 +403,7 @@
         let NUKE_THRESHOLD = 400;
         let BASE_LOSS = 300; 
         const REBEL_PEACE_TIME = 60;
-
+        let fleets = []; // Gemilerin tutulacağı liste
         const GREY = 0; 
         const OCEAN = 10; 
         
@@ -971,7 +971,27 @@
             const w = airCanvas.width; const h = airCanvas.height;
             const cellW = w / COLS; const cellH = h / ROWS;
             ctxAir.clearRect(0, 0, w, h);
-
+// --- GEMİLERİ ÇİZ ---
+            fleets.forEach(f => {
+                let px = f.x * cellW + cellW/2;
+                let py = f.y * cellH + cellH/2;
+                
+                // Gemi şekli (Basit bir tekne)
+                ctxAir.fillStyle = COLOR_HEX[f.team];
+                ctxAir.strokeStyle = "#fff";
+                ctxAir.lineWidth = 1;
+                
+                ctxAir.beginPath();
+                ctxAir.ellipse(px, py, cellW/2, cellH/4, 0, 0, Math.PI*2);
+                ctxAir.fill();
+                ctxAir.stroke();
+                
+                // Direk (Mast)
+                ctxAir.beginPath();
+                ctxAir.moveTo(px, py - cellH/4);
+                ctxAir.lineTo(px, py - cellH/1.5);
+                ctxAir.stroke();
+            });
             ctxAir.lineWidth = 2; ctxAir.setLineDash([10, 10]);
             for (let key in alliances) {
                 if (alliances[key] > 0) {
@@ -1441,7 +1461,126 @@
             } else { newPlane.state = 'PATROL'; newPlane.targetGX = Math.random() * COLS; newPlane.targetGY = Math.random() * ROWS; }
             planes.push(newPlane);
         }
+function spawnFleet(teamId) {
+            if (teamId === REBEL) return;
+            // Sadece parası olan ve denize kıyısı olanlar gemi yapar
+            if (teamStats[teamId].money < 500) return;
 
+            // Kıyı şeridi bul (Liman)
+            let ports = [];
+            for(let y=1; y<ROWS-1; y++) {
+                for(let x=1; x<COLS-1; x++) {
+                    if(warGrid[y][x] === teamId) {
+                        // Etrafında deniz var mı?
+                        let hasSea = false;
+                        let seaX = x, seaY = y;
+                        [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
+                            if(warGrid[y+d[0]][x+d[1]] === OCEAN) { hasSea=true; seaX=x+d[1]; seaY=y+d[0]; }
+                        });
+                        if(hasSea) ports.push({x: seaX, y: seaY}); // Gemiyi denize koy
+                    }
+                }
+            }
+
+            if(ports.length > 0) {
+                let port = ports[Math.floor(Math.random() * ports.length)];
+                // Hedef belirle (Rastgele bir düşman kıyısı veya deniz devriyesi)
+                let targetX = Math.floor(Math.random() * COLS);
+                let targetY = Math.floor(Math.random() * ROWS);
+                
+                fleets.push({
+                    team: teamId,
+                    x: port.x, y: port.y,
+                    tx: targetX, ty: targetY,
+                    state: 'SAIL' // SAIL (Yüz), INVADE (Çıkarma yap)
+                });
+                teamStats[teamId].money -= 500; // Gemi maliyeti
+            }
+        }
+
+        function updateFleets() {
+            // Her tur %5 ihtimalle yeni gemi üret
+            TEAMS.forEach(team => { if (Math.random() < 0.05) spawnFleet(team); });
+
+            for (let i = fleets.length - 1; i >= 0; i--) {
+                let f = fleets[i];
+                let speed = 0.2; // Gemiler uçaklardan yavaştır
+
+                // Hedefe git
+                let dx = f.tx - f.x;
+                let dy = f.ty - f.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+
+                if (dist > speed) {
+                    let nextX = f.x + (dx/dist) * speed;
+                    let nextY = f.y + (dy/dist) * speed;
+
+                    // Karaya çarpma kontrolü (Basit)
+                    // Eğer gideceği yer deniz değilse dur ve orası düşmansa çıkarma yap
+                    let gridX = Math.floor(nextX);
+                    let gridY = Math.floor(nextY);
+
+                    if (gridX >= 0 && gridX < COLS && gridY >= 0 && gridY < ROWS) {
+                        if (warGrid[gridY][gridX] !== OCEAN) {
+                            // KARAYA VURDUK!
+                            let coastalOwner = warGrid[gridY][gridX];
+                            if (coastalOwner !== f.team && coastalOwner !== GREY && !areAllies(f.team, coastalOwner)) {
+                                // ÇIKARMA BAŞLAT (NAVAL INVASION)
+                                addLog(`⚓ NAVAL INVASION: ${BASE_TEAM_NAMES[f.team]} landed on ${BASE_TEAM_NAMES[coastalOwner]}!`, 'annihilation');
+                                showFloatingText(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), "INVASION!", "blitz-text");
+                                
+                                // Orayı ele geçir ve bir köprübaşı oluştur
+                                warGrid[gridY][gridX] = f.team;
+                                occupationTime[gridY][gridX] = 0;
+                                startCaptureAnimation(gridX, gridY, coastalOwner, f.team, gridX, gridY);
+                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
+                                
+                                // Etrafındaki 1-2 kareyi de al (Güçlü çıkarma)
+                                [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
+                                    let nx=gridX+d[1], ny=gridY+d[0];
+                                    if(nx>=0 && nx<COLS && ny>=0 && ny<ROWS && warGrid[ny][nx] !== OCEAN) {
+                                        warGrid[ny][nx] = f.team;
+                                        occupationTime[ny][nx] = 0;
+                                    }
+                                });
+                            }
+                            fleets.splice(i, 1); // Gemi görevini tamamladı ve yok oldu (askere dönüştü)
+                            continue;
+                        } else {
+                            // Yol deniz, devam et
+                            f.x = nextX; f.y = nextY;
+                        }
+                    } else {
+                        fleets.splice(i, 1); // Harita dışına çıktı
+                        continue;
+                    }
+                } else {
+                    // Hedefe vardı (Denizin ortasıysa yeni hedef seç)
+                    f.tx = Math.floor(Math.random() * COLS);
+                    f.ty = Math.floor(Math.random() * ROWS);
+                }
+
+                // Deniz Savaşı (Aynı karede düşman gemisi var mı?)
+                for (let j = 0; j < fleets.length; j++) {
+                    if (i !== j) {
+                        let enemy = fleets[j];
+                        if (Math.abs(f.x - enemy.x) < 1 && Math.abs(f.y - enemy.y) < 1) {
+                            if (f.team !== enemy.team && !areAllies(f.team, enemy.team)) {
+                                // Savaş! Biri batacak.
+                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
+                                if (Math.random() < 0.5) {
+                                    fleets.splice(i, 1); // Biz battık
+                                } else {
+                                    fleets.splice(j, 1); // Onlar battı
+                                    if (j < i) i--; // İndeks kaymasını düzelt
+                                }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
         function checkLiberation() {
             if (liberationTriggered || simDate.getFullYear() < 1920) return;
 
@@ -1658,6 +1797,7 @@
                 }
             }
             checkRebellion(); updatePlanes();
+            updateFleets(); 
             updateView(); updateEconomyUI(); updateDraftUI(); 
             checkLiberation(); 
             checkVictory();
