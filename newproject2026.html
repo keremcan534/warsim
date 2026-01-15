@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>OS WarSim v59.2: Terrain Update</title>
+    <title>OS WarSim v60.0: Naval Warfare (Final)</title>
     <style>
         /* --- GENERAL SETTINGS --- */
         body {
@@ -232,7 +232,7 @@
 
     <div class="taskbar">
         <div style="display:flex; align-items:center;">
-            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v59.2 TERRAIN UPDATE</span></h1>
+            <h1>OS WarSim <span style="color:#e67e22; font-size:12px;">v60.0 NAVAL WARFARE</span></h1>
             <span style="margin: 0 15px; color: #444;">|</span>
             <div style="display:flex; gap:10px;">
                 <div id="date-display" style="font-family: 'Courier New', monospace; font-weight: bold; color: #fff; font-size: 14px; background: #222; padding: 2px 8px; border-radius: 4px; border: 1px solid #444;">1914-01-01</div>
@@ -403,7 +403,7 @@
         let NUKE_THRESHOLD = 400;
         let BASE_LOSS = 300; 
         const REBEL_PEACE_TIME = 60;
-        let fleets = []; // Gemilerin tutulacağı liste
+
         const GREY = 0; 
         const OCEAN = 10; 
         
@@ -425,7 +425,7 @@
         let CAPITALS = {};
         let demoCanvas, ctxDemo, popCanvas, ctxPop, factoryCanvas, ctxFact;
         let warGrid = [], demoGrid = [], occupationTime = [], populationGrid = [], factoryGrid = [], coreLevelGrid = [], permanentCoreGrid = []; 
-        let planes = [], strategicPoints = [];
+        let planes = [], fleets = [], strategicPoints = [];
         let alliances = {}; 
         let intervalId = null, isPaused = false, gameTick = 0;
         let simDate = new Date("1914-01-01"); 
@@ -631,7 +631,7 @@
             
             animatingCells = {}; fxParticles = []; currentFrontData = {}; frontProgress = {};
             warGrid = []; demoGrid = []; occupationTime = []; populationGrid = []; factoryGrid = []; coreLevelGrid = []; permanentCoreGrid = [];
-            planes = []; strategicPoints = []; alliances = {};
+            planes = []; fleets = []; strategicPoints = []; alliances = {};
             teamStats = {}; totalCasualties = {}; liberationTriggered = false; 
             [...TEAMS, REBEL].forEach(id => { teamStats[id] = {gdp:0, totalPop:0, factories:0, money:0, nukeProgress:0, size:0, frontCount:0}; totalCasualties[id] = 0; });
             gameTick = 0; rebelSafeTimer = 0; victoryScreen.style.display = 'none';
@@ -809,7 +809,6 @@
                 let t1 = teams[0]; let t2 = teams[1];
                 let d1 = currentFrontData[key][t1];
                 let d2 = currentFrontData[key][t2];
-                // Blitz için asker limiti
                 if(!d1 || !d2 || d1.troops < 500 || d2.troops < 500) continue;
 
                 let id1 = `front-${key}-${t1}`;
@@ -908,13 +907,11 @@
                         ctxWar.fillStyle = COLOR_HEX[warGrid[y][x]]; ctxWar.fillRect(cx, cy, cellW+0.5, cellH+0.5); 
                     }
 
-                    // --- ARAZİ ÇİZİMİ DÜZELTİLDİ ---
-                    // Animasyon bloğunun dışına alındı, böylece her zaman çizilir.
                     if (terrainGrid[y][x] === TERRAIN_MOUNTAIN) {
-                        ctxWar.fillStyle = "rgba(0, 0, 0, 0.35)"; // Dağ gölgesi
+                        ctxWar.fillStyle = "rgba(0, 0, 0, 0.35)"; 
                         ctxWar.fillRect(cx, cy, cellW, cellH);
                     } else if (terrainGrid[y][x] === TERRAIN_FOREST) {
-                        ctxWar.fillStyle = "rgba(0, 50, 0, 0.25)"; // Orman yeşilliği
+                        ctxWar.fillStyle = "rgba(0, 50, 0, 0.25)"; 
                         ctxWar.fillRect(cx, cy, cellW, cellH);
                     }
 
@@ -964,6 +961,106 @@
             }
         }
 
+        // --- GEMİ (FLEET) MANTIĞI ---
+        function spawnFleet(teamId) {
+            if (teamId === REBEL) return;
+            if (teamStats[teamId].money < 500) return;
+
+            let ports = [];
+            for(let y=1; y<ROWS-1; y++) {
+                for(let x=1; x<COLS-1; x++) {
+                    if(warGrid[y][x] === teamId) {
+                        let hasSea = false;
+                        let seaX = x, seaY = y;
+                        [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
+                            if(warGrid[y+d[0]][x+d[1]] === OCEAN) { hasSea=true; seaX=x+d[1]; seaY=y+d[0]; }
+                        });
+                        if(hasSea) ports.push({x: seaX, y: seaY});
+                    }
+                }
+            }
+
+            if(ports.length > 0) {
+                let port = ports[Math.floor(Math.random() * ports.length)];
+                let targetX = Math.floor(Math.random() * COLS);
+                let targetY = Math.floor(Math.random() * ROWS);
+                
+                fleets.push({
+                    team: teamId,
+                    x: port.x, y: port.y,
+                    tx: targetX, ty: targetY,
+                    angle: 0
+                });
+                teamStats[teamId].money -= 500;
+            }
+        }
+
+        function updateFleets() {
+            TEAMS.forEach(team => { if (Math.random() < 0.05) spawnFleet(team); });
+
+            for (let i = fleets.length - 1; i >= 0; i--) {
+                let f = fleets[i];
+                let speed = 0.15; 
+
+                let dx = f.tx - f.x;
+                let dy = f.ty - f.y;
+                let dist = Math.sqrt(dx*dx + dy*dy);
+                f.angle = Math.atan2(dy, dx);
+
+                if (dist > speed) {
+                    let nextX = f.x + (dx/dist) * speed;
+                    let nextY = f.y + (dy/dist) * speed;
+                    let gridX = Math.floor(nextX);
+                    let gridY = Math.floor(nextY);
+
+                    if (gridX >= 0 && gridX < COLS && gridY >= 0 && gridY < ROWS) {
+                        if (warGrid[gridY][gridX] !== OCEAN) {
+                            let coastalOwner = warGrid[gridY][gridX];
+                            if (coastalOwner !== f.team && coastalOwner !== GREY && !areAllies(f.team, coastalOwner)) {
+                                addLog(`⚓ NAVAL INVASION by ${BASE_TEAM_NAMES[f.team]}!`, 'annihilation');
+                                warGrid[gridY][gridX] = f.team;
+                                occupationTime[gridY][gridX] = 0;
+                                startCaptureAnimation(gridX, gridY, coastalOwner, f.team, gridX, gridY);
+                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
+                                
+                                [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
+                                    let nx=gridX+d[1], ny=gridY+d[0];
+                                    if(nx>=0 && nx<COLS && ny>=0 && ny<ROWS && warGrid[ny][nx] !== OCEAN) {
+                                        warGrid[ny][nx] = f.team;
+                                        occupationTime[ny][nx] = 0;
+                                    }
+                                });
+                            }
+                            fleets.splice(i, 1); 
+                            continue;
+                        } else {
+                            f.x = nextX; f.y = nextY;
+                        }
+                    } else {
+                        fleets.splice(i, 1);
+                        continue;
+                    }
+                } else {
+                    f.tx = Math.floor(Math.random() * COLS);
+                    f.ty = Math.floor(Math.random() * ROWS);
+                }
+
+                for (let j = 0; j < fleets.length; j++) {
+                    if (i !== j) {
+                        let enemy = fleets[j];
+                        if (Math.abs(f.x - enemy.x) < 1 && Math.abs(f.y - enemy.y) < 1) {
+                            if (f.team !== enemy.team && !areAllies(f.team, enemy.team)) {
+                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
+                                if (Math.random() < 0.5) { fleets.splice(i, 1); } 
+                                else { fleets.splice(j, 1); if (j < i) i--; }
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
         function drawPlanesAndDiplomacy() {
             if(!ctxAir) return;
             const rect = airCanvas.getBoundingClientRect();
@@ -971,27 +1068,45 @@
             const w = airCanvas.width; const h = airCanvas.height;
             const cellW = w / COLS; const cellH = h / ROWS;
             ctxAir.clearRect(0, 0, w, h);
-// --- GEMİLERİ ÇİZ ---
+
+            // --- YAMATO CLASS SHIP DRAWING ---
             fleets.forEach(f => {
                 let px = f.x * cellW + cellW/2;
                 let py = f.y * cellH + cellH/2;
                 
-                // Gemi şekli (Basit bir tekne)
-                ctxAir.fillStyle = COLOR_HEX[f.team];
-                ctxAir.strokeStyle = "#fff";
+                ctxAir.save();
+                ctxAir.translate(px, py);
+                ctxAir.rotate(f.angle); 
+                
+                let s = Math.min(cellW, cellH) * 0.8;
+
+                ctxAir.fillStyle = COLOR_HEX[f.team]; 
+                ctxAir.strokeStyle = "#000"; 
                 ctxAir.lineWidth = 1;
                 
                 ctxAir.beginPath();
-                ctxAir.ellipse(px, py, cellW/2, cellH/4, 0, 0, Math.PI*2);
+                ctxAir.moveTo(s * 0.8, 0); 
+                ctxAir.lineTo(s * 0.2, -s * 0.25);
+                ctxAir.lineTo(-s * 0.7, -s * 0.25); 
+                ctxAir.lineTo(-s * 0.7, s * 0.25);
+                ctxAir.lineTo(s * 0.2, s * 0.25);
+                ctxAir.closePath();
                 ctxAir.fill();
                 ctxAir.stroke();
+
+                ctxAir.fillStyle = "rgba(0,0,0,0.3)"; 
+                ctxAir.fillRect(-s*0.2, -s*0.15, s*0.3, s*0.3); 
                 
-                // Direk (Mast)
-                ctxAir.beginPath();
-                ctxAir.moveTo(px, py - cellH/4);
-                ctxAir.lineTo(px, py - cellH/1.5);
-                ctxAir.stroke();
+                ctxAir.fillStyle = "#333";
+                ctxAir.beginPath(); ctxAir.arc(s*0.4, 0, s*0.08, 0, Math.PI*2); ctxAir.fill();
+                ctxAir.beginPath(); ctxAir.moveTo(s*0.4, 0); ctxAir.lineTo(s*0.6, 0); ctxAir.stroke(); 
+                ctxAir.beginPath(); ctxAir.arc(s*0.2, 0, s*0.08, 0, Math.PI*2); ctxAir.fill();
+                ctxAir.beginPath(); ctxAir.arc(-s*0.4, 0, s*0.08, 0, Math.PI*2); ctxAir.fill();
+                ctxAir.beginPath(); ctxAir.moveTo(-s*0.4, 0); ctxAir.lineTo(-s*0.6, 0); ctxAir.stroke(); 
+
+                ctxAir.restore();
             });
+
             ctxAir.lineWidth = 2; ctxAir.setLineDash([10, 10]);
             for (let key in alliances) {
                 if (alliances[key] > 0) {
@@ -1054,7 +1169,7 @@
         function calculateStats() {
             [...TEAMS, REBEL].forEach(id => { 
                 teamStats[id].gdp = 0; teamStats[id].totalPop = 0; teamStats[id].size = 0; 
-                teamStats[id].totalFrontCount = 0; teamStats[id].realFrontCount = 0; // YENİ
+                teamStats[id].totalFrontCount = 0; teamStats[id].realFrontCount = 0; 
             });
             let strBonus = {}; TEAMS.forEach(t=>strBonus[t]=0);
             strategicPoints.forEach(pt => { let owner = warGrid[pt.y][pt.x]; if (owner !== GREY && owner !== OCEAN) strBonus[owner] = (strBonus[owner]||0) + 0.05; });
@@ -1075,7 +1190,6 @@
                 teamStats[owner].gdp += (GDP_PER_CELL * efficiency);
                 teamStats[owner].size++;
 
-                // --- YENİ CEPHE SAYIM MANTIĞI ---
                 let dirs = [[0,1],[0,-1],[1,0],[-1,0]];
                 for(let d of dirs) {
                     let ny = y + d[0]; let nx = x + d[1];
@@ -1084,7 +1198,7 @@
                         if(neighborId !== owner && neighborId !== OCEAN && !areAllies(owner, neighborId)) { 
                              teamStats[owner].totalFrontCount++;
                              if (neighborId !== GREY) {
-                                 teamStats[owner].realFrontCount++; // Sadece gerçek düşman sınırı
+                                 teamStats[owner].realFrontCount++; 
                              }
                         }
                     }
@@ -1266,7 +1380,7 @@
                 if (occupier === OCEAN) {
                     ctxDemo.fillStyle = COLOR_HEX[OCEAN];
                 } else if (occupier === GREY) {
-                    ctxDemo.fillStyle = '#111'; // Kara ama sahipsiz (Koyu Gri)
+                    ctxDemo.fillStyle = '#111'; 
                 } else if (occupier !== native) {
                     ctxDemo.fillStyle = COLOR_HEX[native];
                     ctxDemo.fillRect(x*dCW, y*dCH, dCW, dCH);
@@ -1321,12 +1435,10 @@
                 [{y:y,x:x+1}, {y:y+1,x:x}].forEach(n => {
                     if(n.y<ROWS && n.x<COLS) {
                         let c2 = warGrid[n.y][n.x];
-                        // GREY ile savaş olabilir ama OCEAN ile olamaz
                         if(c2!==c1 && c2!==OCEAN && !areAllies(c1, c2)) {
                             let key = c1<c2 ? `${c1}-${c2}` : `${c2}-${c1}`;
                             if(!fronts[key]) fronts[key] = {[c1]:{x:0,y:0,n:0,troops:0}, [c2]:{x:0,y:0,n:0,troops:0}};
                             
-                            // Asker gücünü hesaplarken hedefin GREY olup olmamasına göre davran
                             let force1 = getArmyForce(c1, c2 !== GREY);
                             let force2 = getArmyForce(c2, c1 !== GREY);
 
@@ -1453,7 +1565,6 @@
                 while(attempts < 50) {
                     let tx = Math.floor(Math.random() * COLS); let ty = Math.floor(Math.random() * ROWS);
                     let targetTeam = warGrid[ty][tx];
-                    // Denize bombalama yapma, sadece düşman veya nötr kara
                     if (targetTeam !== teamId && targetTeam !== OCEAN && !areAllies(teamId, targetTeam)) { newPlane.targetGX = tx; newPlane.targetGY = ty; newPlane.state = 'ATTACK'; found = true; break; }
                     attempts++;
                 }
@@ -1461,126 +1572,7 @@
             } else { newPlane.state = 'PATROL'; newPlane.targetGX = Math.random() * COLS; newPlane.targetGY = Math.random() * ROWS; }
             planes.push(newPlane);
         }
-function spawnFleet(teamId) {
-            if (teamId === REBEL) return;
-            // Sadece parası olan ve denize kıyısı olanlar gemi yapar
-            if (teamStats[teamId].money < 500) return;
 
-            // Kıyı şeridi bul (Liman)
-            let ports = [];
-            for(let y=1; y<ROWS-1; y++) {
-                for(let x=1; x<COLS-1; x++) {
-                    if(warGrid[y][x] === teamId) {
-                        // Etrafında deniz var mı?
-                        let hasSea = false;
-                        let seaX = x, seaY = y;
-                        [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
-                            if(warGrid[y+d[0]][x+d[1]] === OCEAN) { hasSea=true; seaX=x+d[1]; seaY=y+d[0]; }
-                        });
-                        if(hasSea) ports.push({x: seaX, y: seaY}); // Gemiyi denize koy
-                    }
-                }
-            }
-
-            if(ports.length > 0) {
-                let port = ports[Math.floor(Math.random() * ports.length)];
-                // Hedef belirle (Rastgele bir düşman kıyısı veya deniz devriyesi)
-                let targetX = Math.floor(Math.random() * COLS);
-                let targetY = Math.floor(Math.random() * ROWS);
-                
-                fleets.push({
-                    team: teamId,
-                    x: port.x, y: port.y,
-                    tx: targetX, ty: targetY,
-                    state: 'SAIL' // SAIL (Yüz), INVADE (Çıkarma yap)
-                });
-                teamStats[teamId].money -= 500; // Gemi maliyeti
-            }
-        }
-
-        function updateFleets() {
-            // Her tur %5 ihtimalle yeni gemi üret
-            TEAMS.forEach(team => { if (Math.random() < 0.05) spawnFleet(team); });
-
-            for (let i = fleets.length - 1; i >= 0; i--) {
-                let f = fleets[i];
-                let speed = 0.2; // Gemiler uçaklardan yavaştır
-
-                // Hedefe git
-                let dx = f.tx - f.x;
-                let dy = f.ty - f.y;
-                let dist = Math.sqrt(dx*dx + dy*dy);
-
-                if (dist > speed) {
-                    let nextX = f.x + (dx/dist) * speed;
-                    let nextY = f.y + (dy/dist) * speed;
-
-                    // Karaya çarpma kontrolü (Basit)
-                    // Eğer gideceği yer deniz değilse dur ve orası düşmansa çıkarma yap
-                    let gridX = Math.floor(nextX);
-                    let gridY = Math.floor(nextY);
-
-                    if (gridX >= 0 && gridX < COLS && gridY >= 0 && gridY < ROWS) {
-                        if (warGrid[gridY][gridX] !== OCEAN) {
-                            // KARAYA VURDUK!
-                            let coastalOwner = warGrid[gridY][gridX];
-                            if (coastalOwner !== f.team && coastalOwner !== GREY && !areAllies(f.team, coastalOwner)) {
-                                // ÇIKARMA BAŞLAT (NAVAL INVASION)
-                                addLog(`⚓ NAVAL INVASION: ${BASE_TEAM_NAMES[f.team]} landed on ${BASE_TEAM_NAMES[coastalOwner]}!`, 'annihilation');
-                                showFloatingText(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), "INVASION!", "blitz-text");
-                                
-                                // Orayı ele geçir ve bir köprübaşı oluştur
-                                warGrid[gridY][gridX] = f.team;
-                                occupationTime[gridY][gridX] = 0;
-                                startCaptureAnimation(gridX, gridY, coastalOwner, f.team, gridX, gridY);
-                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
-                                
-                                // Etrafındaki 1-2 kareyi de al (Güçlü çıkarma)
-                                [[0,1],[0,-1],[1,0],[-1,0]].forEach(d => {
-                                    let nx=gridX+d[1], ny=gridY+d[0];
-                                    if(nx>=0 && nx<COLS && ny>=0 && ny<ROWS && warGrid[ny][nx] !== OCEAN) {
-                                        warGrid[ny][nx] = f.team;
-                                        occupationTime[ny][nx] = 0;
-                                    }
-                                });
-                            }
-                            fleets.splice(i, 1); // Gemi görevini tamamladı ve yok oldu (askere dönüştü)
-                            continue;
-                        } else {
-                            // Yol deniz, devam et
-                            f.x = nextX; f.y = nextY;
-                        }
-                    } else {
-                        fleets.splice(i, 1); // Harita dışına çıktı
-                        continue;
-                    }
-                } else {
-                    // Hedefe vardı (Denizin ortasıysa yeni hedef seç)
-                    f.tx = Math.floor(Math.random() * COLS);
-                    f.ty = Math.floor(Math.random() * ROWS);
-                }
-
-                // Deniz Savaşı (Aynı karede düşman gemisi var mı?)
-                for (let j = 0; j < fleets.length; j++) {
-                    if (i !== j) {
-                        let enemy = fleets[j];
-                        if (Math.abs(f.x - enemy.x) < 1 && Math.abs(f.y - enemy.y) < 1) {
-                            if (f.team !== enemy.team && !areAllies(f.team, enemy.team)) {
-                                // Savaş! Biri batacak.
-                                spawnParticles(f.x * (warCanvas.width/COLS), f.y * (warCanvas.height/ROWS), 'fire');
-                                if (Math.random() < 0.5) {
-                                    fleets.splice(i, 1); // Biz battık
-                                } else {
-                                    fleets.splice(j, 1); // Onlar battı
-                                    if (j < i) i--; // İndeks kaymasını düzelt
-                                }
-                                break;
-                            }
-                        }
-                    }
-                }
-            }
-        }
         function checkLiberation() {
             if (liberationTriggered || simDate.getFullYear() < 1920) return;
 
@@ -1705,9 +1697,7 @@ function spawnFleet(teamId) {
                 if(rebelSafeTimer > 0 && targetC === REBEL) return;
                 if(targetC === cell.c || areAllies(cell.c, targetC)) return;
 
-                // --- SAVAŞ GÜCÜ HESAPLAMA (DÜZELTİLDİ) ---
-                // Eğer hedef Gri (Sahipsiz) ise saldırı gücü daha düşük ve yaygın
-                // Eğer hedef Düşman ise saldırı gücü çok yüksek ve odaklı
+                // --- SAVAŞ GÜCÜ HESAPLAMA ---
                 let isRealWar = (targetC !== GREY);
                 let atkArmy = getArmyForce(cell.c, isRealWar);
                 
@@ -1740,13 +1730,13 @@ function spawnFleet(teamId) {
                     maxMult = GAME_CONFIG.trench.max;
                 }
 
-                // --- ARAZİ BONUSLARI (DÜZELTİLDİ: Sadece combat için) ---
+                // --- ARAZİ BONUSLARI ---
                 let terrainType = terrainGrid[target.y][target.x];
                 if (terrainType === TERRAIN_MOUNTAIN) {
-                    defArmy *= 3.0; // Dağlar inanılmaz savunma bonusu verir (3x)
-                    if (Math.random() < 0.005) addLog(`⛰️ Mountain defense at [${target.x},${target.y}] holds!`, 'normal'); // Log sıklığını düşürdüm
+                    defArmy *= 3.0; 
+                    if (Math.random() < 0.005) addLog(`⛰️ Mountain defense at [${target.x},${target.y}] holds!`, 'normal');
                 } else if (terrainType === TERRAIN_FOREST) {
-                    defArmy *= 1.5; // Ormanlar orta seviye bonus verir (1.5x)
+                    defArmy *= 1.5; 
                 }
 
                 let atkLuck = minMult + Math.random() * (maxMult - minMult);
@@ -1796,8 +1786,7 @@ function spawnFleet(teamId) {
                     if(permanentCoreGrid[y] && permanentCoreGrid[y][x]) continue; 
                 }
             }
-            checkRebellion(); updatePlanes();
-            updateFleets(); 
+            checkRebellion(); updatePlanes(); updateFleets();
             updateView(); updateEconomyUI(); updateDraftUI(); 
             checkLiberation(); 
             checkVictory();
